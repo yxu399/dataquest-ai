@@ -55,3 +55,11 @@ def test_database_connection():
     except Exception as e:
         logger.error(f"Database connection failed: {e}")
         return False
+
+def get_db():
+    """Database dependency for FastAPI"""
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()

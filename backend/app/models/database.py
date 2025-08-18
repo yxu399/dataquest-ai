@@ -14,9 +14,10 @@ class Analysis(Base):
     
     id = Column(Integer, primary_key=True, index=True)
     filename = Column(String(255), nullable=False)
-    original_filename = Column(String(255), nullable=False)
-    file_size = Column(Integer, nullable=False)  # Size in bytes
-    status = Column(String(50), default="pending")  # pending, processing, completed, failed
+    file_size = Column(Integer, nullable=False)
+    upload_time = Column(DateTime(timezone=True), server_default=func.now())
+    status = Column(String(50), default='processing')  # 'processing', 'completed', 'failed'
+    file_path = Column(String(500), nullable=True)  # Temporary file location
     
     # Data profile information
     data_profile = Column(JSON, nullable=True)

@@ -6,6 +6,7 @@ import os
 import sys
 from datetime import datetime
 from dotenv import load_dotenv
+from app.api.v1 import files
 
 # Add current directory to Python path
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
@@ -33,10 +34,16 @@ app = FastAPI(
     redoc_url="/redoc"
 )
 
+app.include_router(files.router, prefix="/api/v1/files", tags=["files"])
+
 # Configure CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://frontend:3000"],
+    allow_origins=[
+        "http://localhost:3000", 
+        "http://localhost:3001",  # Add this line
+        "http://frontend:3000"
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
