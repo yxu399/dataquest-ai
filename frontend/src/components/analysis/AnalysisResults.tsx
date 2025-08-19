@@ -3,7 +3,7 @@ import { AnalysisResults as IAnalysisResults } from '../../types';
 import { DataProfileCard } from './DataProfileCard';
 import { StatisticalSummary } from './StatisticalSummary';
 import { InsightsList } from './InsightsList';
-import { ChartGrid } from '../charts/ChartGrid';
+import { ChartSelector } from '../charts/ChartSelector';
 import { Tabs, Tab } from '../common/Tabs';
 
 interface AnalysisResultsProps {
@@ -11,7 +11,9 @@ interface AnalysisResultsProps {
 }
 
 export const AnalysisResults: React.FC<AnalysisResultsProps> = ({ results }) => {
-  const [activeTab, setActiveTab] = useState('overview');
+    console.log('Analysis Results:', JSON.stringify(results, null, 2));
+
+    const [activeTab, setActiveTab] = useState('overview');
 
   const tabs: Tab[] = [
     { id: 'overview', name: 'Overview', icon: '📊' },
@@ -48,7 +50,7 @@ export const AnalysisResults: React.FC<AnalysisResultsProps> = ({ results }) => 
         )}
 
         {activeTab === 'charts' && (
-          <ChartGrid results={results} />
+          <ChartSelector results={results} />
         )}
 
         {activeTab === 'insights' && (

@@ -18,6 +18,9 @@ def data_profiler_agent(state: DataAnalysisState) -> DataAnalysisState:
     try:
         # Load CSV file
         df = pd.read_csv(state["file_path"])
+
+        # ADD THIS DEBUG LINE
+        print(f"🔍 DEBUG: Processing {len(df)} rows for full_data")
         
         # Basic data profiling
         profile = {
@@ -27,8 +30,16 @@ def data_profiler_agent(state: DataAnalysisState) -> DataAnalysisState:
             "missing_data": {col: int(count) for col, count in df.isnull().sum().items()},
             "numeric_columns": df.select_dtypes(include=['number']).columns.tolist(),
             "categorical_columns": df.select_dtypes(include=['object']).columns.tolist(),
-            "sample_data": df.head(3).to_dict('records')
+            
+            # Keep sample for quick preview
+            "sample_data": df.head(3).to_dict('records'),
+            
+            # ADD THIS: Full dataset for charts (limit to reasonable size)
+            "full_data": df.head(1000).to_dict('records') if len(df) <= 1000 else df.sample(1000).to_dict('records')
         }
+
+        # ADD THIS DEBUG LINE TOO
+        print(f"🔍 DEBUG: Created full_data with {len(profile['full_data'])} rows")
         
         # Add summary statistics for numeric columns
         if profile["numeric_columns"]:

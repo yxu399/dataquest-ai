@@ -48,6 +48,7 @@ class DataProfile(BaseModel):
     numeric_columns: List[str]
     categorical_columns: List[str]
     sample_data: List[Dict[str, Any]]
+    full_data: Optional[List[Dict[str, Any]]] = None
 
 class AnalysisResults(BaseModel):
     """Complete analysis results"""

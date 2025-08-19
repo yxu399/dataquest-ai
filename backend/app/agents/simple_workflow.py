@@ -17,7 +17,8 @@ def run_data_analysis(file_path: str, filename: str) -> Dict[str, Any]:
             "missing_data": {col: int(count) for col, count in df.isnull().sum().items()},
             "numeric_columns": df.select_dtypes(include=['number']).columns.tolist(),
             "categorical_columns": df.select_dtypes(include=['object']).columns.tolist(),
-            "sample_data": df.head(3).to_dict('records')
+            "sample_data": df.head(3).to_dict('records'),
+            "full_data": df.to_dict('records')
         }
         
         # Add numeric statistics

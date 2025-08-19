@@ -22,7 +22,7 @@ class AnalysisService:
             if not analysis.file_path:
                 return {"success": False, "error": "No file path found"}
             
-            # Run the analysis
+            # Run the simple data analysis workflow
             result = run_data_analysis(analysis.file_path, analysis.filename)
             
             # Update database with results
@@ -65,6 +65,7 @@ class AnalysisService:
             }
         finally:
             db.close()
+
 
 # Create service instance
 analysis_service = AnalysisService()

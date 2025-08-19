@@ -1,7 +1,7 @@
 import React from 'react';
 import { AnalysisResults } from '../../types';
 import { BarChart } from './BarChart';
-import { ScatterChart } from './ScatterChart';
+import { ScatterChart } from './ScatterPlot';
 import { HistogramChart } from './HistogramChart';
 import { CorrelationHeatmap } from './CorrelationHeatmap';
 

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Stepper, StepperStep } from './common/Stepper';
 import { apiService, UploadResponse, AnalysisStatus, AnalysisResults } from '../services/api';
+import { ChartSelector } from './charts/ChartSelector';
 
 export const Dashboard: React.FC = () => {
   const [currentStep, setCurrentStep] = useState(0);
@@ -189,6 +190,11 @@ export const Dashboard: React.FC = () => {
 
           {currentStep === 2 && analysisResults && (
             <div>
+              {console.log('=== DASHBOARD ANALYSIS RESULTS ===', analysisResults)}
+              {console.log('Sample data length:', analysisResults.data_profile?.sample_data?.length)}
+              {console.log('Full data length:', analysisResults.data_profile?.full_data?.length)}
+              {console.log('Full data exists:', !!analysisResults.data_profile?.full_data)}
+              
               <h2 className="text-xl font-semibold mb-4">Analysis Complete!</h2>
               
               {/* Results Summary */}
@@ -218,7 +224,7 @@ export const Dashboard: React.FC = () => {
 
               {/* Insights */}
               {analysisResults.insights && analysisResults.insights.length > 0 && (
-                <div className="bg-gray-50 rounded-lg p-6">
+                <div className="bg-gray-50 rounded-lg p-6 mb-8">
                   <h3 className="text-lg font-semibold text-gray-900 mb-4">Key Insights</h3>
                   <div className="space-y-3">
                     {analysisResults.insights.map((insight, idx) => (
@@ -232,6 +238,12 @@ export const Dashboard: React.FC = () => {
                   </div>
                 </div>
               )}
+
+              {/* NEW: Interactive Data Visualizations with Chart Selector */}
+              <div className="mt-8">
+                <h3 className="text-lg font-semibold text-gray-900 mb-6">Interactive Data Visualizations</h3>
+                <ChartSelector results={analysisResults} />
+              </div>
             </div>
           )}
         </div>
