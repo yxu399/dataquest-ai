@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Stepper, StepperStep } from './common/Stepper';
 import { apiService, UploadResponse, AnalysisStatus, AnalysisResults } from '../services/api';
 import { ChartSelector } from './charts/ChartSelector';
+import { ChatInterface } from './chat/ChatInterface';
 
 export const Dashboard: React.FC = () => {
   const [currentStep, setCurrentStep] = useState(0);
@@ -10,6 +11,16 @@ export const Dashboard: React.FC = () => {
   const [analysisResults, setAnalysisResults] = useState<AnalysisResults | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const [chatGeneratedChart, setChatGeneratedChart] = useState<{
+    data: any;
+    type: string;
+  } | null>(null);
+
+  const [interfaceMode, setInterfaceMode] = useState<'charts' | 'chat' | 'both'>('charts');
+  
+  // FIXED: Consistent naming with ChartSelector expectations
+  const [selectedChartFromAI, setSelectedChartFromAI] = useState<string | null>(null);
 
   const steps: StepperStep[] = [
     {
@@ -81,6 +92,30 @@ export const Dashboard: React.FC = () => {
     setAnalysisResults(null);
     setError(null);
     setIsUploading(false);
+    // ADDED: Reset AI chart selection
+    setSelectedChartFromAI(null);
+    setChatGeneratedChart(null);
+  };
+
+  const handleChatChartGenerated = (chartData: any, chartType: string) => {
+    setChatGeneratedChart({ data: chartData, type: chartType });
+  };
+
+  const handleChatChartSelected = (chartType: string) => {
+    console.log('🤖 AI selected chart:', chartType);
+    setSelectedChartFromAI(chartType);
+    
+    // Auto-switch to both mode if currently in chat-only mode
+    if (interfaceMode === 'chat') {
+      setInterfaceMode('both');
+    }
+  };
+
+  // FIXED: Correct function signature to match ChartSelector expectations
+  const handleManualChartChange = () => {
+    console.log('👤 User manually changed chart, clearing AI selection');
+    // Clear AI selection when user manually changes chart
+    setSelectedChartFromAI(null);
   };
 
   return (
@@ -190,11 +225,6 @@ export const Dashboard: React.FC = () => {
 
           {currentStep === 2 && analysisResults && (
             <div>
-              {console.log('=== DASHBOARD ANALYSIS RESULTS ===', analysisResults)}
-              {console.log('Sample data length:', analysisResults.data_profile?.sample_data?.length)}
-              {console.log('Full data length:', analysisResults.data_profile?.full_data?.length)}
-              {console.log('Full data exists:', !!analysisResults.data_profile?.full_data)}
-              
               <h2 className="text-xl font-semibold mb-4">Analysis Complete!</h2>
               
               {/* Results Summary */}
@@ -239,10 +269,106 @@ export const Dashboard: React.FC = () => {
                 </div>
               )}
 
-              {/* NEW: Interactive Data Visualizations with Chart Selector */}
+              {/* Interactive Interface with Chat and Charts */}
               <div className="mt-8">
-                <h3 className="text-lg font-semibold text-gray-900 mb-6">Interactive Data Visualizations</h3>
-                <ChartSelector results={analysisResults} />
+                {/* Interface Mode Selector */}
+                <div className="mb-6">
+                  <div className="flex space-x-4 border-b border-gray-200">
+                    <button
+                      onClick={() => setInterfaceMode('charts')}
+                      className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
+                        interfaceMode === 'charts'
+                          ? 'border-blue-500 text-blue-600'
+                          : 'border-transparent text-gray-500 hover:text-gray-700'
+                      }`}
+                    >
+                      📊 Chart Selector
+                    </button>
+                    <button
+                      onClick={() => setInterfaceMode('chat')}
+                      className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
+                        interfaceMode === 'chat'
+                          ? 'border-blue-500 text-blue-600'
+                          : 'border-transparent text-gray-500 hover:text-gray-700'
+                      }`}
+                    >
+                      🤖 AI Chat
+                    </button>
+                    <button
+                      onClick={() => setInterfaceMode('both')}
+                      className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
+                        interfaceMode === 'both'
+                          ? 'border-blue-500 text-blue-600'
+                          : 'border-transparent text-gray-500 hover:text-gray-700'
+                      }`}
+                    >
+                      🔄 Both
+                    </button>
+                  </div>
+                </div>
+
+                {/* Interface Content */}
+                <div className="space-y-8">
+                  {/* Chat Mode - Show first in 'both' mode */}
+                  {(interfaceMode === 'both' || interfaceMode === 'chat') && (
+                    <div>
+                      <h3 className="text-lg font-semibold text-gray-900 mb-6">
+                        🤖 Chat with Your Data
+                      </h3>
+                      
+                      {/* Chat Interface - always full width */}
+                      <div className="mb-6">
+                        <ChatInterface 
+                          results={analysisResults} 
+                          onChartGenerated={handleChatChartGenerated}
+                          onChartSelected={handleChatChartSelected}
+                        />
+                      </div>
+                      
+                      {/* AI Analysis Status - only show in chat-only mode */}
+                      {interfaceMode === 'chat' && (
+                        <div className="bg-white border border-gray-200 rounded-lg p-4">
+                          <h4 className="text-md font-semibold text-gray-900 mb-4">
+                            AI Analysis Status
+                          </h4>
+                          {selectedChartFromAI ? (
+                            <div className="text-center text-green-600">
+                              <div className="text-4xl mb-2">✅</div>
+                              <p className="font-medium">Chart Suggested!</p>
+                              <p className="text-sm">Switch to 'Both' or 'Chart Selector' to view {selectedChartFromAI} chart</p>
+                            </div>
+                          ) : (
+                            <div className="text-center text-gray-500">
+                              <div className="text-4xl mb-2">🤖</div>
+                              <p>Ask me to create a chart</p>
+                              <p className="text-sm">I'll suggest the perfect visualization</p>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Charts Mode - Show second in 'both' mode */}
+                  {(interfaceMode === 'both' || interfaceMode === 'charts') && (
+                    <div>
+                      <h3 className="text-lg font-semibold text-gray-900 mb-6 flex items-center">
+                        📊 Interactive Data Visualizations
+                        {/* AI Selection Indicator */}
+                        {selectedChartFromAI && (
+                          <span className="ml-3 text-sm font-normal text-blue-600 bg-blue-50 px-2 py-1 rounded">
+                            🤖 AI Selected: {selectedChartFromAI}
+                          </span>
+                        )}
+                      </h3>
+                      <ChartSelector 
+                        results={analysisResults}
+                        defaultSelectedChart={selectedChartFromAI}
+                        onChartChange={handleManualChartChange}
+                      />
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           )}

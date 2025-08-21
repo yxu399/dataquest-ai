@@ -1,0 +1,26 @@
+employee_id,name,department,age,salary,years_experience,performance_score,education_level,remote_work,project_count,customer_satisfaction
+E001,John Smith,Engineering,28,75000,3,8.5,Bachelor,Yes,12,4.2
+E002,Sarah Johnson,Marketing,34,68000,7,9.1,Master,No,8,4.7
+E003,Mike Davis,Sales,31,82000,5,7.8,Bachelor,Yes,15,4.1
+E004,Emily Brown,Engineering,26,71000,2,8.9,Master,Yes,10,4.5
+E005,David Wilson,HR,42,59000,12,7.2,Bachelor,No,6,3.8
+E006,Lisa Garcia,Marketing,29,64000,4,8.7,Bachelor,Yes,9,4.6
+E007,James Miller,Sales,37,89000,8,8.3,Bachelor,No,18,4.3
+E008,Anna Taylor,Engineering,33,78000,6,9.2,Master,Yes,14,4.8
+E009,Robert Lee,Finance,39,72000,10,7.5,Master,No,7,3.9
+E010,Jennifer White,Sales,30,79000,4,8.8,Bachelor,Yes,16,4.4
+E011,Chris Anderson,Engineering,27,73000,3,8.1,Master,Yes,11,4.3
+E012,Amanda Thompson,Marketing,35,66000,8,8.4,Bachelor,No,10,4.5
+E013,Mark Rodriguez,HR,45,61000,15,7.0,Bachelor,No,5,3.7
+E014,Nicole Martinez,Finance,32,74000,6,8.6,Master,Yes,8,4.2
+E015,Kevin Clark,Sales,28,77000,3,9.0,Bachelor,Yes,13,4.6
+E016,Rachel Lewis,Engineering,29,76000,4,8.7,Master,Yes,12,4.7
+E017,Brian Walker,Marketing,36,67000,9,7.9,Bachelor,No,9,4.1
+E018,Michelle Hall,Sales,33,85000,7,8.5,Bachelor,Yes,17,4.4
+E019,Steven Young,Finance,41,70000,11,7.3,Master,No,6,3.8
+E020,Laura King,Engineering,25,69000,1,8.8,Bachelor,Yes,8,4.5
+E021,Daniel Wright,HR,38,58000,13,7.1,Bachelor,No,4,3.6
+E022,Karen Lopez,Marketing,31,65000,5,8.9,Master,Yes,11,4.8
+E023,Paul Hill,Sales,34,83000,6,8.2,Bachelor,No,16,4.2
+E024,Jessica Green,Engineering,30,77000,5,9.1,Master,Yes,13,4.6
+E025,Ryan Adams,Finance,37,73000,9,7.8,Bachelor,Yes,7,4.0

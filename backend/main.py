@@ -6,23 +6,23 @@ import os
 import sys
 from datetime import datetime
 from dotenv import load_dotenv
-from app.api.v1 import files
 
 # Add current directory to Python path
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
-# Load environment variables
-load_dotenv()
+# Load environment variables from parent directory
+load_dotenv(os.path.join(os.path.dirname(__file__), '..', '.env'))
 
-# Import our modules with error handling
+# Import modules with error handling
 try:
     from app.core.config import settings
     from app.core.database import get_database, create_tables, test_database_connection
     from app.models.schemas import HealthCheck, BaseResponse
+    from app.api.v1 import files
+    from app.api.v1 import chat  # ADD THIS IMPORT
     print("✅ All imports successful")
 except ImportError as e:
     print(f"❌ Import error: {e}")
-    # Create minimal app for testing
     settings = None
 
 # Create FastAPI application
@@ -34,14 +34,16 @@ app = FastAPI(
     redoc_url="/redoc"
 )
 
+# Include routers
 app.include_router(files.router, prefix="/api/v1/files", tags=["files"])
+app.include_router(chat.router, prefix="/api/v1/chat", tags=["chat"])
 
 # Configure CORS
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "http://localhost:3000", 
-        "http://localhost:3001",  # Add this line
+        "http://localhost:3001",
         "http://frontend:3000"
     ],
     allow_credentials=True,

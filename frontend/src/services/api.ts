@@ -30,6 +30,7 @@ export interface AnalysisResults {
     numeric_columns: string[];
     categorical_columns: string[];
     sample_data: Record<string, any>[];
+    full_data?: Record<string, any>[];
   };
   analysis_results?: {
     summary: {
@@ -49,10 +50,34 @@ export interface AnalysisResults {
   completed_at?: string;
 }
 
+export interface ChatMessage {
+  id: string;
+  type: 'user' | 'assistant';
+  content: string;
+  timestamp: Date;
+  analysis_id?: number;
+  chart_data?: any;
+  chart_type?: string;
+  error?: string;
+}
+
+export interface ChatRequest {
+  analysis_id: number;
+  message: string;
+  conversation_history: ChatMessage[];
+}
+
+export interface ChatResponse {
+  message: ChatMessage;
+  analysis?: any;
+  chart_suggestion?: string;
+  error?: string;
+}
+
 class ApiService {
   private baseURL = process.env.NODE_ENV === 'production' 
     ? '' 
-    : 'http://localhost:8000';
+    : '';
 
   async uploadFile(file: File): Promise<UploadResponse> {
     const formData = new FormData();
@@ -82,26 +107,67 @@ class ApiService {
     return response.data;
   }
 
-  // Polling for real-time updates
-  startPolling(analysisId: number, onUpdate: (status: AnalysisStatus) => void, interval = 2000): () => void {
-    const poll = async () => {
+  async sendChatMessage(request: ChatRequest): Promise<ChatResponse> {
+    const response = await fetch(`${this.baseURL}/api/v1/chat/message`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        ...request,
+        // Convert Date objects to ISO strings for API
+        conversation_history: request.conversation_history.map(msg => ({
+          ...msg,
+          timestamp: msg.timestamp.toISOString()
+        }))
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Chat request failed: ${response.status}`);
+    }
+
+    const data = await response.json();
+    
+    // Convert timestamp back to Date object
+    if (data.message && data.message.timestamp) {
+      data.message.timestamp = new Date(data.message.timestamp);
+    }
+
+    return data;
+  }
+
+  async getConversationHistory(analysisId: number): Promise<{
+    analysis_id: number;
+    conversation: ChatMessage[];
+    data_summary: any;
+  }> {
+    const response = await fetch(`${this.baseURL}/api/v1/chat/conversation/${analysisId}`);
+
+    if (!response.ok) {
+      throw new Error(`Failed to get conversation history: ${response.status}`);
+    }
+
+    return await response.json();
+  }
+
+  startPolling(analysisId: number, onStatusUpdate: (status: AnalysisStatus) => void): void {
+    const pollInterval = setInterval(async () => {
       try {
         const status = await this.getAnalysisStatus(analysisId);
-        onUpdate(status);
+        onStatusUpdate(status);
         
+        // Stop polling when analysis is completed or failed
         if (status.status === 'completed' || status.status === 'failed') {
           clearInterval(pollInterval);
         }
       } catch (error) {
         console.error('Polling error:', error);
+        clearInterval(pollInterval);
       }
-    };
-
-    const pollInterval = setInterval(poll, interval);
-    poll(); // Initial call
-
-    return () => clearInterval(pollInterval);
+    }, 1000); // Poll every second
   }
 }
+
 
 export const apiService = new ApiService();

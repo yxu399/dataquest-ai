@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { AnalysisResults } from '../../types';
+import { AnalysisResults } from '../../services/api';
 import { BarChart } from './BarChart';
 import { ScatterPlot } from './ScatterPlot';
 import { HistogramChart } from './HistogramChart';
@@ -8,6 +8,8 @@ import { BoxPlot } from './BoxPlot';
 
 interface ChartSelectorProps {
   results: AnalysisResults;
+  defaultSelectedChart?: string | null;  
+  onChartChange?: () => void;            
 }
 
 interface ChartOption {
@@ -58,7 +60,11 @@ const chartOptions: ChartOption[] = [
   }
 ];
 
-export const ChartSelector: React.FC<ChartSelectorProps> = ({ results }) => {
+export const ChartSelector: React.FC<ChartSelectorProps> = ({ 
+  results, 
+  defaultSelectedChart,  // CHANGED: renamed from externalSelectedChart
+  onChartChange 
+}) => {
   const { data_profile, analysis_results } = results;
 
   // Check data availability
@@ -76,16 +82,46 @@ export const ChartSelector: React.FC<ChartSelectorProps> = ({ results }) => {
     return true;
   });
 
-  console.log('🎯 ChartSelector component rendered!', { availableCharts: availableCharts.length });
+  console.log('🎯 ChartSelector component rendered!', { 
+    availableCharts: availableCharts.length,
+    hasNumericData: hasNumericData ? data_profile?.numeric_columns?.length : 0,
+    hasCategoricalData: hasCategoricalData ? data_profile?.categorical_columns?.length : 0,
+    hasCorrelations: hasCorrelations ? analysis_results?.correlations?.length : 0,
+    defaultSelectedChart  // ADD: log AI selection
+  });
 
-  const [selectedChart, setSelectedChart] = useState<string>(availableCharts[0]?.id || 'bar');
+  const [internalSelectedChart, setInternalSelectedChart] = useState<string>(availableCharts[0]?.id || 'bar');
+  const [isAISelected, setIsAISelected] = useState<boolean>(false);  // ADD: track AI selection
+  
+  // Use AI selection if provided, otherwise use internal state
+  const selectedChart = defaultSelectedChart || internalSelectedChart;
 
   // Set default chart if current selection is not available
   React.useEffect(() => {
     if (!availableCharts.find(c => c.id === selectedChart)) {
-      setSelectedChart(availableCharts[0]?.id || 'bar');
+      const defaultChart = availableCharts[0]?.id || 'bar';
+      if (!defaultSelectedChart) {
+        setInternalSelectedChart(defaultChart);
+        setIsAISelected(false);
+      }
     }
-  }, [availableCharts, selectedChart]);
+  }, [availableCharts, selectedChart, defaultSelectedChart]);
+
+  // Handle AI chart selection changes
+  React.useEffect(() => {
+    if (defaultSelectedChart && defaultSelectedChart !== internalSelectedChart) {
+      // AI made a selection
+      if (availableCharts.find(c => c.id === defaultSelectedChart)) {
+        setInternalSelectedChart(defaultSelectedChart);
+        setIsAISelected(true);
+        console.log('🤖 AI selected chart:', defaultSelectedChart);
+      }
+    } else if (!defaultSelectedChart && isAISelected) {
+      // AI selection was cleared
+      setIsAISelected(false);
+      console.log('🧹 AI selection cleared');
+    }
+  }, [defaultSelectedChart, availableCharts, internalSelectedChart, isAISelected]);
 
   const renderSelectedChart = () => {
     const fullData = data_profile?.full_data || data_profile?.sample_data || [];
@@ -158,8 +194,7 @@ export const ChartSelector: React.FC<ChartSelectorProps> = ({ results }) => {
         <div className="flex items-center justify-between mb-4">
           <h4 className="text-lg font-medium text-gray-900">Visualization Type</h4>
           <div className="text-sm text-gray-500">
-            {data_profile.full_data ? `${data_profile.full_data.length} data points` : 
-             `${data_profile.sample_data?.length || 0} data points`}
+            {`${data_profile?.full_data?.length || data_profile?.sample_data?.length || 0} data points`}
           </div>
         </div>
         
@@ -171,7 +206,15 @@ export const ChartSelector: React.FC<ChartSelectorProps> = ({ results }) => {
             </label>
             <select
               value={selectedChart}
-              onChange={(e) => setSelectedChart(e.target.value)}
+              onChange={(e) => {
+                const newChart = e.target.value;
+                setInternalSelectedChart(newChart);
+                setIsAISelected(false);  // CHANGED: user manually changed, clear AI flag
+                console.log('👤 User manually selected chart:', newChart);
+                if (onChartChange) {
+                  onChartChange();  // CHANGED: removed parameter
+                }
+              }}
               className="block w-full px-3 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base"
             >
               {availableCharts.map((chart) => (
@@ -196,14 +239,24 @@ export const ChartSelector: React.FC<ChartSelectorProps> = ({ results }) => {
           )}
         </div>
 
-        {/* Data Availability Info */}
+        {/* Data Availability Info with AI Indicator */}
         <div className="mt-4 text-sm text-gray-600 bg-blue-50 rounded-lg p-3">
-          <span className="font-medium">Available data:</span>
-          {' '}
-          {hasNumericData && `${data_profile.numeric_columns.length} numeric columns`}
-          {hasNumericData && hasCategoricalData && ', '}
-          {hasCategoricalData && `${data_profile.categorical_columns.length} categorical columns`}
-          {hasCorrelations && `, ${analysis_results.correlations.length} strong correlations`}
+          <div className="flex items-center justify-between">
+            <div>
+              <span className="font-medium">Available data:</span>
+              {' '}
+              {hasNumericData && `${data_profile?.numeric_columns?.length || 0} numeric columns`}
+              {hasNumericData && hasCategoricalData && ', '}
+              {hasCategoricalData && `${data_profile?.categorical_columns?.length || 0} categorical columns`}
+              {hasCorrelations && `, ${analysis_results?.correlations?.length || 0} strong correlations`}
+            </div>
+            {/* NEW: AI Selection Indicator */}
+            {isAISelected && (
+              <div className="text-xs text-blue-600 bg-blue-200 px-2 py-1 rounded font-medium">
+                🤖 AI Selected
+              </div>
+            )}
+          </div>
         </div>
       </div>
 

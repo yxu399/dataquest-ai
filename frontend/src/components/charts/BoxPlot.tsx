@@ -8,33 +8,99 @@ interface BoxPlotProps {
 }
 
 export const BoxPlot: React.FC<BoxPlotProps> = ({ data, columns, title }) => {
-  const [selectedColumns, setSelectedColumns] = useState<string[]>(
-    columns.slice(0, Math.min(4, columns.length)) // Default to first 4 columns
-  );
+  // Smart column selection based on title
+  const getSmartDefaultColumns = () => {
+    const titleLower = title.toLowerCase();
+    
+    // Look for specific column mentions in the title
+    const mentionedColumn = columns.find(col => 
+      titleLower.includes(col.toLowerCase()) || 
+      titleLower.includes(col.toLowerCase().replace('_', ' '))
+    );
+    
+    if (mentionedColumn) {
+      return [mentionedColumn];
+    }
+    
+    // Default fallback
+    return columns.slice(0, Math.min(1, columns.length));
+  };
+
+  const [selectedColumns, setSelectedColumns] = useState<string[]>(getSmartDefaultColumns);
   const [showOutliers, setShowOutliers] = useState(true);
+  const [groupByColumn, setGroupByColumn] = useState<string>('');
 
   if (!columns.length || !data.length) {
     return <div className="text-gray-500 text-center py-8">No numeric data available</div>;
   }
 
+  // Get categorical columns for grouping
+  const categoricalColumns = Object.keys(data[0] || {}).filter(col => 
+    !columns.includes(col) && 
+    typeof data[0][col] === 'string'
+  );
+
+  // Auto-detect if we should group by a categorical column (smart default)
+  React.useEffect(() => {
+    if (!groupByColumn && categoricalColumns.length > 0 && selectedColumns.length === 1) {
+      // If there's a common categorical column name, auto-select it
+      const commonCategories = ['department', 'region', 'category', 'type', 'status', 'group'];
+      const autoColumn = categoricalColumns.find(col => 
+        commonCategories.some(common => col.toLowerCase().includes(common))
+      ) || categoricalColumns[0]; // fallback to first categorical column
+      
+      setGroupByColumn(autoColumn);
+    }
+  }, [selectedColumns, categoricalColumns, groupByColumn]);
+
   // Prepare data for box plots
-  const plotData = selectedColumns.map(column => {
-    const values = data.map(row => row[column]).filter(val => val != null && !isNaN(val));
+  let plotData;
+  
+  if (groupByColumn && selectedColumns.length === 1) {
+    // Group by categorical variable - show distribution of selected numeric column across categories
+    const numericColumn = selectedColumns[0];
+    const categories = [...new Set(data.map(row => row[groupByColumn]).filter(val => val != null))];
     
-    return {
-      y: values,
-      type: 'box' as const,
-      name: column.replace('_', ' ').toUpperCase(),
-      boxpoints: showOutliers ? 'outliers' : false,
-      marker: {
-        color: `hsl(${selectedColumns.indexOf(column) * 360 / selectedColumns.length}, 70%, 50%)`,
-        size: 4
-      },
-      line: {
-        width: 2
-      }
-    };
-  });
+    plotData = categories.map(category => {
+      const values = data
+        .filter(row => row[groupByColumn] === category)
+        .map(row => row[numericColumn])
+        .filter(val => val != null && !isNaN(val));
+      
+      return {
+        y: values,
+        type: 'box' as const,
+        name: `${category}`,
+        boxpoints: showOutliers ? 'outliers' : false,
+        marker: {
+          color: `hsl(${categories.indexOf(category) * 360 / categories.length}, 70%, 50%)`,
+          size: 4
+        },
+        line: {
+          width: 2
+        }
+      };
+    });
+  } else {
+    // Default: separate box plots for each numeric column
+    plotData = selectedColumns.map(column => {
+      const values = data.map(row => row[column]).filter(val => val != null && !isNaN(val));
+      
+      return {
+        y: values,
+        type: 'box' as const,
+        name: column.replace('_', ' ').toUpperCase(),
+        boxpoints: showOutliers ? 'outliers' : false,
+        marker: {
+          color: `hsl(${selectedColumns.indexOf(column) * 360 / selectedColumns.length}, 70%, 50%)`,
+          size: 4
+        },
+        line: {
+          width: 2
+        }
+      };
+    });
+  }
 
   const layout = {
     title: {
@@ -121,10 +187,32 @@ export const BoxPlot: React.FC<BoxPlotProps> = ({ data, columns, title }) => {
         </div>
 
         {/* Options */}
-        <div>
+        <div className="space-y-3">
           <label className="block text-sm font-medium text-gray-700 mb-2">
             Display Options
           </label>
+          
+          {/* Group By Selector */}
+          {categoricalColumns.length > 0 && selectedColumns.length === 1 && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Group By Category
+              </label>
+              <select
+                value={groupByColumn}
+                onChange={(e) => setGroupByColumn(e.target.value)}
+                className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm"
+              >
+                <option value="">No grouping</option>
+                {categoricalColumns.map(col => (
+                  <option key={col} value={col}>
+                    Group by {col.replace('_', ' ').toUpperCase()}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+          
           <label className="flex items-center">
             <input
               type="checkbox"
