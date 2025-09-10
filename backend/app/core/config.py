@@ -6,18 +6,10 @@ class Settings(BaseSettings):
     """Application settings and configuration"""
     
     # Database settings
-    postgres_user: str = "dataquest_user"
-    postgres_password: str = "your_secure_password_here"
-    postgres_host: str = "localhost"
-    postgres_port: int = 5432
-    postgres_db: str = "dataquest_ai"
-    
-    # Computed database URL
-    @property
-    def database_url(self) -> str:
-        return (f"postgresql://{self.postgres_user}:"
-                f"{self.postgres_password}@{self.postgres_host}:"
-                f"{self.postgres_port}/{self.postgres_db}")
+    database_url: str = (
+        "postgresql://dataquest_user:your_secure_password_here@"
+        "localhost:5432/dataquest_ai"
+    )
     
     # AI/LLM settings
     anthropic_api_key: Optional[str] = None
