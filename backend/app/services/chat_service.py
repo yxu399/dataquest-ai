@@ -63,7 +63,7 @@ class ChatService:
             
             # Call Claude API
             response = self.client.messages.create(
-                model="claude-3-5-sonnet-20241022",
+                model="claude-3-5-sonnet-20240620",
                 max_tokens=1000,
                 system=system_prompt,
                 messages=[
@@ -240,14 +240,24 @@ What would you like to explore?""",
         
         return context
     
-    def _build_conversation_context(self, conversation_history: List[Dict]) -> List[Dict]:
+    def _build_conversation_context(self, conversation_history: List) -> List[Dict]:
         """Convert conversation history to Claude message format"""
         messages = []
         for msg in conversation_history[-6:]:
-            if msg.get("type") == "user":
-                messages.append({"role": "user", "content": msg.get("content", "")})
-            elif msg.get("type") == "assistant":
-                messages.append({"role": "assistant", "content": msg.get("content", "")})
+            # Handle both dict and ChatMessage objects
+            if hasattr(msg, 'type'):
+                # Pydantic ChatMessage object
+                msg_type = msg.type
+                msg_content = msg.content
+            else:
+                # Dictionary object
+                msg_type = msg.get("type")
+                msg_content = msg.get("content", "")
+
+            if msg_type == "user":
+                messages.append({"role": "user", "content": msg_content})
+            elif msg_type == "assistant":
+                messages.append({"role": "assistant", "content": msg_content})
         return messages
     
     def _create_system_prompt(self, context: Dict[str, Any]) -> str:
@@ -256,15 +266,32 @@ What would you like to explore?""",
         analysis_results = context["analysis_results"]
         insights = context["insights"]
         available_charts = context["available_charts"]
-        
-        return f"""You are an expert data analyst AI assistant helping users explore their dataset through natural language conversation.
+
+        # Include sample data for Claude to understand the structure
+        sample_data = data_profile.get("sample_data", [])[:3]  # First 3 rows
+        sample_text = ""
+        if sample_data:
+            sample_text = f"\nSAMPLE DATA:\n{json.dumps(sample_data, indent=2)}"
+
+        # Include numeric statistics
+        numeric_stats = data_profile.get("numeric_statistics", {})
+        stats_text = ""
+        if numeric_stats:
+            stats_text = f"\nNUMERIC STATISTICS:\n{json.dumps(numeric_stats, indent=2)}"
+
+        return f"""You are an expert data analyst AI assistant with access to the user's actual dataset. You can answer specific questions about the data by analyzing the provided information.
 
 DATASET CONTEXT:
 - Filename: {context["filename"]}
 - Shape: {data_profile.get("shape", "Unknown")} (rows × columns)
+- Columns: {data_profile.get("columns", [])}
 - Numeric columns: {data_profile.get("numeric_columns", [])}
 - Categorical columns: {data_profile.get("categorical_columns", [])}
 - Missing data: {data_profile.get("missing_data", {})}
+
+{sample_text}
+
+{stats_text}
 
 ANALYSIS RESULTS:
 - Correlations found: {len(analysis_results.get("correlations", []))}
@@ -273,9 +300,14 @@ ANALYSIS RESULTS:
 
 AVAILABLE VISUALIZATIONS: {available_charts}
 
-When suggesting a chart, end your response with: CHART_SUGGESTION: [chart_type]
+INSTRUCTIONS:
+1. Answer user questions directly using the provided data and statistics
+2. For specific queries (like "which has the highest profit"), use the numeric statistics and sample data to provide actual answers
+3. When you can't answer with the sample data, explain what you can see and suggest visualizations
+4. When suggesting a chart, end your response with: CHART_SUGGESTION: [chart_type]
+5. Be conversational and helpful, providing context and insights beyond just the raw answer
 
-Provide specific, data-driven insights based on actual analysis results."""
+Provide specific, data-driven answers based on the actual data provided above."""
     
     def _create_user_prompt(self, user_message: str, context: Dict[str, Any]) -> str:
         """Create user prompt with context"""
@@ -359,7 +391,8 @@ Provide specific, data-driven insights based on actual analysis results."""
         message_lower = user_message.lower()
         data_profile = context["data_profile"]
         analysis_results = context["analysis_results"]
-        
+
+
         # Check if asking about variation/distribution
         if any(word in message_lower for word in ["vary", "varies", "variation", "distribution", "different", "across"]):
             # Determine appropriate chart type

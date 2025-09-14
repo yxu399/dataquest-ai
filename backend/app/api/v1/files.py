@@ -4,17 +4,16 @@ import os
 import csv
 import tempfile
 from typing import Optional
-from sqlalchemy.sql import func
-import asyncio
 from app.services.analysis_service import analysis_service
 
 from app.core.database import get_db
 from app.core.config import settings
 from app.models.database import Analysis
-from app.models.schemas import FileUploadResponse, ErrorResponse
+from app.models.schemas import FileUploadResponse
 from app.models.schemas import AnalysisStatus, AnalysisResults
 
 router = APIRouter()
+
 
 def validate_csv_file(file: UploadFile) -> tuple[bool, str, Optional[dict]]:
     """Validate uploaded CSV file"""
@@ -43,30 +42,88 @@ def validate_csv_file(file: UploadFile) -> tuple[bool, str, Optional[dict]]:
             temp_file.write(content)
             temp_path = temp_file.name
         
-        # Try to read CSV
-        with open(temp_path, 'r', encoding='utf-8') as csvfile:
-            # Detect delimiter
-            sample = csvfile.read(1024)
-            csvfile.seek(0)
-            sniffer = csv.Sniffer()
-            delimiter = sniffer.sniff(sample).delimiter
+        # Try to read CSV with improved delimiter detection
+        delimiter = None
+        encoding = 'utf-8'
+        
+        # Try different encodings if utf-8 fails
+        encodings_to_try = ['utf-8', 'latin-1', 'cp1252', 'iso-8859-1']
+        
+        for enc in encodings_to_try:
+            try:
+                with open(temp_path, 'r', encoding=enc) as csvfile:
+                    # Try multiple sample sizes for delimiter detection
+                    sample_sizes = [1024, 2048, 4096]
+                    
+                    for sample_size in sample_sizes:
+                        csvfile.seek(0)
+                        sample = csvfile.read(sample_size)
+                        
+                        if sample:
+                            try:
+                                sniffer = csv.Sniffer()
+                                delimiter = sniffer.sniff(sample).delimiter
+                                encoding = enc
+                                break
+                            except csv.Error:
+                                continue
+                    
+                    if delimiter:
+                        break
+                        
+            except UnicodeDecodeError:
+                continue
+        
+        # If sniffer fails, try common delimiters
+        if not delimiter:
+            common_delimiters = [',', ';', '\t', '|']
             
-            # Read first few rows
+            with open(temp_path, 'r', encoding=encoding) as csvfile:
+                sample = csvfile.read(2048)
+                
+                for test_delimiter in common_delimiters:
+                    if test_delimiter in sample:
+                        # Count occurrences in first few lines
+                        first_lines = sample.split('\n')[:3]
+                        counts = [line.count(test_delimiter) for line in first_lines if line.strip()]
+                        
+                        # If delimiter appears consistently, use it
+                        if len(set(counts)) == 1 and counts[0] > 0:
+                            delimiter = test_delimiter
+                            break
+        
+        if not delimiter:
+            os.unlink(temp_path)
+            return False, "Could not determine delimiter. Please ensure the file uses comma, semicolon, tab, or pipe separators.", None
+        
+        # Read and validate CSV content
+        with open(temp_path, 'r', encoding=encoding) as csvfile:
             reader = csv.DictReader(csvfile, delimiter=delimiter)
             rows = []
-            for i, row in enumerate(reader):
-                if i >= 5:  # Only read first 5 rows for validation
-                    break
-                rows.append(row)
+            
+            try:
+                for i, row in enumerate(reader):
+                    if i >= 5:  # Only read first 5 rows for validation
+                        break
+                    rows.append(row)
+            except csv.Error as e:
+                os.unlink(temp_path)
+                return False, f"Invalid CSV format: {str(e)}", None
             
             if not rows:
                 os.unlink(temp_path)
                 return False, "CSV file has no data rows", None
             
+            # Check if we have proper column headers
+            if not rows[0] or all(not key.strip() for key in rows[0].keys()):
+                os.unlink(temp_path)
+                return False, "CSV file must have column headers", None
+            
             file_info = {
                 "rows_sample": len(rows),
                 "columns": list(rows[0].keys()) if rows else [],
                 "delimiter": delimiter,
+                "encoding": encoding,
                 "file_size_bytes": len(content)
             }
             

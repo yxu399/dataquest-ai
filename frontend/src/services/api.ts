@@ -75,9 +75,9 @@ export interface ChatResponse {
 }
 
 class ApiService {
-  private baseURL = process.env.NODE_ENV === 'production' 
-    ? '' 
-    : '';
+  // Use empty base URL for development (Vite proxy handles routing)
+  // For production, this should be configured via environment variables
+  private baseURL = '';
 
   async uploadFile(file: File): Promise<UploadResponse> {
     const formData = new FormData();

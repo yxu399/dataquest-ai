@@ -1,3 +1,13 @@
+# DEPRECATED: This file has been replaced by pyproject.toml
+# 
+# DataQuest AI has migrated from pip to uv for faster dependency management.
+# 
+# To install dependencies, use:
+#   uv pip install -r pyproject.toml
+#   or: uv sync
+#
+# For backwards compatibility, the original requirements are preserved below:
+
 # Web Framework
 fastapi==0.104.1
 uvicorn[standard]==0.24.0
@@ -8,7 +18,7 @@ sqlalchemy==2.0.23
 psycopg2-binary==2.9.9
 alembic==1.13.1
 
-# AI/LLM (we'll test these later)
+# AI/LLM
 langchain==0.1.0
 langgraph==0.0.20
 anthropic==0.34.0
@@ -29,7 +39,7 @@ pytest==7.4.3
 pytest-asyncio==0.21.1
 httpx==0.25.2
 
-# Security (for later)
+# Security
 python-jose[cryptography]==3.3.0
 passlib[bcrypt]==1.7.4
 

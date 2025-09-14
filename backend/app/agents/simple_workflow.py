@@ -1,6 +1,24 @@
 """Simplified analysis workflow without complex LangGraph dependencies"""
 import pandas as pd
+import numpy as np
 from typing import Dict, Any, Optional
+
+def safe_float_convert(value):
+    """Convert value to float, handling NaN by returning None"""
+    if pd.isna(value) or np.isnan(value):
+        return None
+    return float(value)
+
+def clean_nan_values(obj):
+    """Recursively clean NaN values from nested data structures"""
+    if isinstance(obj, dict):
+        return {k: clean_nan_values(v) for k, v in obj.items()}
+    elif isinstance(obj, list):
+        return [clean_nan_values(item) for item in obj]
+    elif pd.isna(obj):
+        return None
+    else:
+        return obj
 
 def run_data_analysis(file_path: str, filename: str) -> Dict[str, Any]:
     """Run complete data analysis workflow"""
@@ -17,8 +35,8 @@ def run_data_analysis(file_path: str, filename: str) -> Dict[str, Any]:
             "missing_data": {col: int(count) for col, count in df.isnull().sum().items()},
             "numeric_columns": df.select_dtypes(include=['number']).columns.tolist(),
             "categorical_columns": df.select_dtypes(include=['object']).columns.tolist(),
-            "sample_data": df.head(3).to_dict('records'),
-            "full_data": df.to_dict('records')
+            "sample_data": clean_nan_values(df.head(3).to_dict('records')),
+            "full_data": clean_nan_values(df.to_dict('records'))
         }
         
         # Add numeric statistics
@@ -26,11 +44,11 @@ def run_data_analysis(file_path: str, filename: str) -> Dict[str, Any]:
             numeric_stats = {}
             for col in data_profile["numeric_columns"]:
                 numeric_stats[col] = {
-                    "mean": float(df[col].mean()),
-                    "median": float(df[col].median()),
-                    "std": float(df[col].std()),
-                    "min": float(df[col].min()),
-                    "max": float(df[col].max())
+                    "mean": safe_float_convert(df[col].mean()),
+                    "median": safe_float_convert(df[col].median()),
+                    "std": safe_float_convert(df[col].std()),
+                    "min": safe_float_convert(df[col].min()),
+                    "max": safe_float_convert(df[col].max())
                 }
             data_profile["numeric_statistics"] = numeric_stats
         
@@ -51,7 +69,7 @@ def run_data_analysis(file_path: str, filename: str) -> Dict[str, Any]:
             for i in range(len(correlation_matrix.columns)):
                 for j in range(i+1, len(correlation_matrix.columns)):
                     corr_val = correlation_matrix.iloc[i, j]
-                    if abs(corr_val) > 0.7:
+                    if not pd.isna(corr_val) and abs(corr_val) > 0.7:
                         high_corr.append({
                             "column1": correlation_matrix.columns[i],
                             "column2": correlation_matrix.columns[j],

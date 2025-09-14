@@ -102,5 +102,6 @@ async def test_endpoint():
     }
 
 if __name__ == "__main__":
+    # Recommended: run with `uv run python main.py` or `uv run python run.py`
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000)
