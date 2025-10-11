@@ -34,14 +34,20 @@ dependencies = [
     "passlib[bcrypt]>=1.7.4",
     # Validation
     "email-validator>=2.1.1",
+    "langchain-anthropic>=0.1.4",
+    "langchain-core>=0.1.23",
 ]
 
 [tool.uv]
 # uv-specific configuration for complete dependency management
 dev-dependencies = [
     "pytest>=7.4.3",
-    "pytest-asyncio>=0.21.1", 
+    "pytest-asyncio>=0.21.1",
     "httpx>=0.25.2",
+    "pytest-benchmark>=5.1.0",
+    "pytest-cov>=7.0.0",
+    "coverage>=7.10.7",
+    "psutil>=7.1.0",
 ]
 
 # Enable uv to manage all Python environments
