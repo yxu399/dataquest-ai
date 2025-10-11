@@ -1,7 +1,5 @@
-from fastapi import FastAPI, HTTPException, Depends
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
-from sqlalchemy.orm import Session
 import os
 import sys
 from datetime import datetime
@@ -11,7 +9,7 @@ from dotenv import load_dotenv
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 # Load environment variables from parent directory
-load_dotenv(os.path.join(os.path.dirname(__file__), '..', '.env'))
+load_dotenv(os.path.join(os.path.dirname(__file__), "..", ".env"))
 
 # Import modules with error handling
 try:
@@ -20,6 +18,7 @@ try:
     from app.models.schemas import HealthCheck, BaseResponse
     from app.api.v1 import files
     from app.api.v1 import chat  # ADD THIS IMPORT
+
     print("✅ All imports successful")
 except ImportError as e:
     print(f"❌ Import error: {e}")
@@ -31,7 +30,7 @@ app = FastAPI(
     description="Intelligent Data Analysis Platform API",
     version="1.0.0",
     docs_url="/docs",
-    redoc_url="/redoc"
+    redoc_url="/redoc",
 )
 
 # Include routers
@@ -42,20 +41,21 @@ app.include_router(chat.router, prefix="/api/v1/chat", tags=["chat"])
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
-        "http://localhost:3000", 
+        "http://localhost:3000",
         "http://localhost:3001",
-        "http://frontend:3000"
+        "http://frontend:3000",
     ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
+
 @app.on_event("startup")
 async def startup_event():
     """Initialize application on startup"""
     print("🚀 Starting DataQuest AI API...")
-    
+
     if settings and test_database_connection:
         # Test database connection
         if test_database_connection():
@@ -68,6 +68,7 @@ async def startup_event():
     else:
         print("⚠️ Starting in minimal mode (some imports failed)")
 
+
 # Health check endpoint
 @app.get("/health")
 async def health_check():
@@ -77,8 +78,9 @@ async def health_check():
         "service": "DataQuest AI API",
         "version": "1.0.0",
         "database_connected": False,  # Will be updated when DB is working
-        "timestamp": datetime.utcnow().isoformat()
+        "timestamp": datetime.utcnow().isoformat(),
     }
+
 
 # Root endpoint
 @app.get("/")
@@ -88,8 +90,9 @@ async def root():
         "message": "Welcome to DataQuest AI API",
         "docs": "/docs",
         "health": "/health",
-        "version": "1.0.0"
+        "version": "1.0.0",
     }
+
 
 # Test endpoint
 @app.get("/api/v1/test")
@@ -98,10 +101,12 @@ async def test_endpoint():
     return {
         "success": True,
         "message": "API is working correctly!",
-        "environment": os.getenv("ENVIRONMENT", "development")
+        "environment": os.getenv("ENVIRONMENT", "development"),
     }
+
 
 if __name__ == "__main__":
     # Recommended: run with `uv run python main.py` or `uv run python run.py`
     import uvicorn
+
     uvicorn.run(app, host="0.0.0.0", port=8000)

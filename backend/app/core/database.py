@@ -1,7 +1,6 @@
 from sqlalchemy import create_engine, MetaData, text
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
-from sqlalchemy.pool import StaticPool
 from .config import settings
 import logging
 
@@ -16,7 +15,7 @@ DATABASE_URL = settings.database_url
 engine = create_engine(
     DATABASE_URL,
     pool_pre_ping=True,
-    echo=settings.environment == "development"  # Log SQL queries in development
+    echo=settings.environment == "development",  # Log SQL queries in development
 )
 
 # Create SessionLocal class
@@ -28,6 +27,7 @@ Base = declarative_base()
 # Metadata for migrations
 metadata = MetaData()
 
+
 def get_database():
     """Dependency to get database session"""
     db = SessionLocal()
@@ -35,6 +35,7 @@ def get_database():
         yield db
     finally:
         db.close()
+
 
 def create_tables():
     """Create all tables in the database"""
@@ -44,6 +45,7 @@ def create_tables():
     except Exception as e:
         logger.error(f"Error creating database tables: {e}")
         raise
+
 
 def test_database_connection():
     """Test database connection"""
@@ -55,6 +57,7 @@ def test_database_connection():
     except Exception as e:
         logger.error(f"Database connection failed: {e}")
         return False
+
 
 def get_db():
     """Database dependency for FastAPI"""

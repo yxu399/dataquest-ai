@@ -3,7 +3,8 @@
 This agent is a "planner" - it determines WHAT analysis to perform,
 then delegates execution to the Tool Agent.
 """
-from typing import Dict, Any, Optional
+
+from typing import Dict, Any
 from langchain_anthropic import ChatAnthropic
 from langchain_core.messages import SystemMessage, HumanMessage
 from app.agents.enhanced_state import DataAnalysisState, add_trace
@@ -29,11 +30,13 @@ class StatisticalAgent:
         """
         api_key = os.getenv("ANTHROPIC_API_KEY")
         if not api_key:
-            raise ValueError("ANTHROPIC_API_KEY environment variable required for Statistical Agent")
+            raise ValueError(
+                "ANTHROPIC_API_KEY environment variable required for Statistical Agent"
+            )
 
         self.llm = ChatAnthropic(
             model=model_name,
-            temperature=0.3  # Lower temperature for precise statistical reasoning
+            temperature=0.3,  # Lower temperature for precise statistical reasoning
         )
 
         # Bind tools to the LLM (uses with_structured_output for tool calling)
@@ -64,8 +67,8 @@ CRITICAL: Your PRIMARY and PREFERRED way to answer questions is by USING TOOLS.
 Do NOT try to answer from memory or make assumptions. ALWAYS use tools to get actual data.
 
 DATASET CONTEXT:
-- Filename: {context.get('filename', 'Unknown')}
-- Shape: {data_profile.get('shape', [0, 0])} (rows × columns)
+- Filename: {context.get("filename", "Unknown")}
+- Shape: {data_profile.get("shape", [0, 0])} (rows × columns)
 - Numeric columns: {numeric_cols}
 - Categorical columns: {categorical_cols}
 
@@ -121,7 +124,9 @@ Current user question requires statistical analysis. Use tools to get exact answ
             Partial state update
         """
         # Add trace
-        updates = add_trace(state, "📊 Statistical Agent: Starting statistical analysis")
+        updates = add_trace(
+            state, "📊 Statistical Agent: Starting statistical analysis"
+        )
 
         # Check if we're interpreting a tool result
         tool_result = state.get("tool_result")
@@ -135,7 +140,9 @@ Current user question requires statistical analysis. Use tools to get exact answ
             # We need to plan a tool call
             return self._plan_tool_call(state, updates)
 
-    def _plan_tool_call(self, state: DataAnalysisState, updates: Dict[str, Any]) -> Dict[str, Any]:
+    def _plan_tool_call(
+        self, state: DataAnalysisState, updates: Dict[str, Any]
+    ) -> Dict[str, Any]:
         """Plan which tool to call based on user query
 
         Args:
@@ -151,7 +158,7 @@ Current user question requires statistical analysis. Use tools to get exact answ
                 "filename": state.get("filename"),
                 "data_profile": state.get("data_profile", {}),
                 "analysis_results": state.get("analysis_results", {}),
-                "available_charts": []
+                "available_charts": [],
             }
 
             # Create messages
@@ -160,7 +167,7 @@ Current user question requires statistical analysis. Use tools to get exact answ
 
             messages = [
                 SystemMessage(content=system_prompt),
-                HumanMessage(content=user_message)
+                HumanMessage(content=user_message),
             ]
 
             # Call LLM with tools
@@ -172,8 +179,7 @@ Current user question requires statistical analysis. Use tools to get exact answ
                 tool_call = response.tool_calls[0]  # Take first tool call
 
                 tool_request = create_tool_call_request(
-                    tool_name=tool_call["name"],
-                    arguments=tool_call["args"]
+                    tool_name=tool_call["name"], arguments=tool_call["args"]
                 )
 
                 return {
@@ -183,8 +189,8 @@ Current user question requires statistical analysis. Use tools to get exact answ
                     "agent_used": "statistical_agent",
                     "trace": [
                         *updates.get("trace", []),
-                        f"📊 Statistical Agent: Requesting tool '{tool_call['name']}' with args: {tool_call['args']}"
-                    ]
+                        f"📊 Statistical Agent: Requesting tool '{tool_call['name']}' with args: {tool_call['args']}",
+                    ],
                 }
             else:
                 # LLM provided direct response (no tool needed)
@@ -197,8 +203,8 @@ Current user question requires statistical analysis. Use tools to get exact answ
                     "agent_used": "statistical_agent",
                     "trace": [
                         *updates.get("trace", []),
-                        "📊 Statistical Agent: Provided direct response (no tool needed)"
-                    ]
+                        "📊 Statistical Agent: Provided direct response (no tool needed)",
+                    ],
                 }
 
         except Exception as e:
@@ -209,15 +215,15 @@ Current user question requires statistical analysis. Use tools to get exact answ
                 "agent_response": f"I encountered an error planning the analysis: {str(e)}",
                 "trace": [
                     *updates.get("trace", []),
-                    f"❌ Statistical Agent: Planning error - {str(e)}"
-                ]
+                    f"❌ Statistical Agent: Planning error - {str(e)}",
+                ],
             }
 
     def _interpret_tool_result(
         self,
         state: DataAnalysisState,
         last_tool: Dict[str, Any],
-        updates: Dict[str, Any]
+        updates: Dict[str, Any],
     ) -> Dict[str, Any]:
         """Interpret tool result and format response for user
 
@@ -243,8 +249,8 @@ Current user question requires statistical analysis. Use tools to get exact answ
                     "agent_used": "statistical_agent",
                     "trace": [
                         *updates.get("trace", []),
-                        f"❌ Statistical Agent: Tool failed, reporting error to user"
-                    ]
+                        "❌ Statistical Agent: Tool failed, reporting error to user",
+                    ],
                 }
 
             # Format result based on tool type
@@ -266,8 +272,8 @@ Current user question requires statistical analysis. Use tools to get exact answ
                 "next": None,  # End workflow
                 "trace": [
                     *updates.get("trace", []),
-                    f"✅ Statistical Agent: Interpreted {tool_name} result and generated response"
-                ]
+                    f"✅ Statistical Agent: Interpreted {tool_name} result and generated response",
+                ],
             }
 
         except Exception as e:
@@ -279,8 +285,8 @@ Current user question requires statistical analysis. Use tools to get exact answ
                 "agent_used": "statistical_agent",
                 "trace": [
                     *updates.get("trace", []),
-                    f"❌ Statistical Agent: Interpretation error - {str(e)}"
-                ]
+                    f"❌ Statistical Agent: Interpretation error - {str(e)}",
+                ],
             }
 
     def _format_correlation_result(self, result: Dict[str, Any]) -> str:
@@ -347,7 +353,9 @@ Current user question requires statistical analysis. Use tools to get exact answ
         response += f"- Range: [{stats['min']:.2f}, {stats['max']:.2f}]\n"
         response += f"- Q1-Q3: [{stats['q1']:.2f}, {stats['q3']:.2f}]\n"
 
-        response += "\n\nWould you like to visualize this distribution with a histogram?"
+        response += (
+            "\n\nWould you like to visualize this distribution with a histogram?"
+        )
 
         return response
 

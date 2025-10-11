@@ -49,6 +49,8 @@ dev-dependencies = [
     "pytest-cov>=7.0.0",
     "coverage>=7.10.7",
     "psutil>=7.1.0",
+    "safety>=3.6.2",
+    "ruff>=0.14.0",
 ]
 
 # Enable uv to manage all Python environments

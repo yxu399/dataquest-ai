@@ -1,0 +1,11 @@
+Date,Product,Category,Sales,Units,Region
+2024-01-15,Widget A,Electronics,1200.50,15,North
+2024-01-16,Widget B,Electronics,850.00,10,South
+2024-01-17,Gadget X,Home & Garden,320.75,5,East
+2024-01-18,Widget A,Electronics,1100.00,12,West
+2024-01-19,Tool Y,Tools,450.25,8,North
+2024-01-20,Gadget X,Home & Garden,280.50,4,South
+2024-01-21,Widget C,Electronics,1500.00,20,East
+2024-01-22,Tool Z,Tools,675.80,12,West
+2024-01-23,Widget B,Electronics,920.00,11,North
+2024-01-24,Gadget Y,Home & Garden,395.25,6,South

@@ -3,6 +3,7 @@
 This agent is the "doer" - it receives structured tool calls from other agents
 and executes them safely on the actual DataFrame.
 """
+
 import time
 import os
 import pandas as pd
@@ -38,7 +39,7 @@ def tool_agent(state: DataAnalysisState) -> Dict[str, Any]:
         return {
             **add_trace(state, "❌ Tool Agent: No file_path in state"),
             "error": "Missing file_path in state",
-            "status": "error"
+            "status": "error",
         }
 
     # Validate file exists on disk
@@ -46,7 +47,7 @@ def tool_agent(state: DataAnalysisState) -> Dict[str, Any]:
         return {
             **add_trace(state, f"❌ Tool Agent: File not found: {file_path}"),
             "error": f"File not found: {file_path}",
-            "status": "error"
+            "status": "error",
         }
 
     # Extract pending tool call
@@ -55,7 +56,7 @@ def tool_agent(state: DataAnalysisState) -> Dict[str, Any]:
         return {
             **add_trace(state, "🔧 Tool Agent: No pending tool to execute"),
             "error": "No pending tool call in state",
-            "status": "error"
+            "status": "error",
         }
 
     tool_name = pending_tool.get("tool_name")
@@ -66,16 +67,20 @@ def tool_agent(state: DataAnalysisState) -> Dict[str, Any]:
         return {
             **add_trace(state, "❌ Tool Agent: pending_tool missing tool_name"),
             "error": "Tool call missing tool_name",
-            "status": "error"
+            "status": "error",
         }
 
     # Add trace for execution start
-    updates = add_trace(state, f"🔧 Tool Agent: Executing {tool_name} with args: {arguments}")
+    updates = add_trace(
+        state, f"🔧 Tool Agent: Executing {tool_name} with args: {arguments}"
+    )
 
     try:
         # Validate tool exists in registry
         if tool_name not in TOOL_EXECUTORS:
-            raise ValueError(f"Unknown tool: {tool_name}. Available: {list(TOOL_EXECUTORS.keys())}")
+            raise ValueError(
+                f"Unknown tool: {tool_name}. Available: {list(TOOL_EXECUTORS.keys())}"
+            )
 
         # Load DataFrame with sampling for large datasets
         df = load_data_with_sampling(file_path, max_rows=10000)
@@ -92,11 +97,7 @@ def tool_agent(state: DataAnalysisState) -> Dict[str, Any]:
 
         # Add successful tool call to state
         tool_call_update = add_tool_call(
-            state,
-            tool_name=tool_name,
-            arguments=arguments,
-            result=result,
-            error=None
+            state, tool_name=tool_name, arguments=arguments, result=result, error=None
         )
 
         # Merge updates
@@ -107,8 +108,8 @@ def tool_agent(state: DataAnalysisState) -> Dict[str, Any]:
             "status": "tool_executed",
             "trace": [
                 *updates.get("trace", []),
-                f"✅ Tool Agent: {tool_name} completed in {execution_time:.2f}ms"
-            ]
+                f"✅ Tool Agent: {tool_name} completed in {execution_time:.2f}ms",
+            ],
         }
 
         return updates
@@ -124,7 +125,7 @@ def tool_agent(state: DataAnalysisState) -> Dict[str, Any]:
             tool_name=tool_name,
             arguments=arguments,
             result=None,
-            error=error_message
+            error=error_message,
         )
 
         # Merge updates
@@ -136,8 +137,8 @@ def tool_agent(state: DataAnalysisState) -> Dict[str, Any]:
             "status": "tool_error",
             "trace": [
                 *updates.get("trace", []),
-                f"❌ Tool Agent: {tool_name} failed after {execution_time:.2f}ms - {error_message}"
-            ]
+                f"❌ Tool Agent: {tool_name} failed after {execution_time:.2f}ms - {error_message}",
+            ],
         }
 
         return updates
@@ -166,7 +167,7 @@ def load_data_with_sampling(file_path: str, max_rows: int = 10000) -> pd.DataFra
     # First, get row count without loading full data
     # This is fast even for large files
     try:
-        with open(file_path, 'r') as f:
+        with open(file_path, "r") as f:
             row_count = sum(1 for _ in f) - 1  # Subtract header
     except Exception as e:
         raise IOError(f"Failed to read file: {str(e)}")
@@ -187,7 +188,9 @@ def load_data_with_sampling(file_path: str, max_rows: int = 10000) -> pd.DataFra
 
         # Create random skip mask
         np.random.seed(42)  # For reproducibility
-        skip_rows = np.random.choice([True, False], size=row_count, p=[skip_prob, 1 - skip_prob])
+        skip_rows = np.random.choice(
+            [True, False], size=row_count, p=[skip_prob, 1 - skip_prob]
+        )
 
         # Convert to indices (accounting for header)
         skip_indices = [i + 1 for i, skip in enumerate(skip_rows) if skip]
@@ -199,7 +202,9 @@ def load_data_with_sampling(file_path: str, max_rows: int = 10000) -> pd.DataFra
         return df
 
 
-def create_tool_call_request(tool_name: str, arguments: Dict[str, Any]) -> Dict[str, Any]:
+def create_tool_call_request(
+    tool_name: str, arguments: Dict[str, Any]
+) -> Dict[str, Any]:
     """Helper function for agents to create tool call requests
 
     Usage in Statistical/Query agents:
@@ -226,11 +231,13 @@ def create_tool_call_request(tool_name: str, arguments: Dict[str, Any]) -> Dict[
         ValueError: If tool_name is not in TOOL_EXECUTORS
     """
     if tool_name not in TOOL_EXECUTORS:
-        raise ValueError(f"Unknown tool: {tool_name}. Available: {list(TOOL_EXECUTORS.keys())}")
+        raise ValueError(
+            f"Unknown tool: {tool_name}. Available: {list(TOOL_EXECUTORS.keys())}"
+        )
 
     return {
         "tool_name": tool_name,
         "arguments": arguments,
         "result": None,
-        "error": None
+        "error": None,
     }

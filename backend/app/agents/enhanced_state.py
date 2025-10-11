@@ -1,4 +1,5 @@
 """Enhanced state for advanced LangGraph multi-agent workflow"""
+
 from typing import Annotated, List, Optional, Dict, Any, Literal
 from typing_extensions import TypedDict
 import operator
@@ -6,6 +7,7 @@ import operator
 
 class ToolCall(TypedDict):
     """Represents a tool call made by an agent"""
+
     tool_name: str
     arguments: Dict[str, Any]
     result: Optional[Any]
@@ -14,6 +16,7 @@ class ToolCall(TypedDict):
 
 class CritiqueResult(TypedDict):
     """Result from Critic Agent evaluation"""
+
     score: float  # 0-1, quality score
     critique: str  # Explanation of quality assessment
     reroute_to: Optional[str]  # Agent to retry with if score < threshold
@@ -35,7 +38,9 @@ class DataAnalysisState(TypedDict):
 
     # User interaction
     user_message: str
-    conversation_history: Annotated[List[Dict[str, str]], operator.add]  # Accumulates with operator.add
+    conversation_history: Annotated[
+        List[Dict[str, str]], operator.add
+    ]  # Accumulates with operator.add
 
     # Routing and classification
     query_type: Optional[str]  # profiling, statistical, visualization, insights, query
@@ -61,7 +66,9 @@ class DataAnalysisState(TypedDict):
     # Critic and self-correction
     critique: Optional[CritiqueResult]  # Latest critique result
     iteration_count: int  # Number of refinement iterations
-    critique_history: Annotated[List[CritiqueResult], operator.add]  # All critiques accumulate
+    critique_history: Annotated[
+        List[CritiqueResult], operator.add
+    ]  # All critiques accumulate
     max_iterations: int  # Maximum allowed iterations (default: 3)
 
     # Metadata and debugging (trace uses operator.add for complete audit trail)
@@ -85,7 +92,7 @@ def initialize_state(
     conversation_history: Optional[List[Dict[str, str]]] = None,
     data_profile: Optional[Dict[str, Any]] = None,
     analysis_results: Optional[Dict[str, Any]] = None,
-    insights: Optional[List[str]] = None
+    insights: Optional[List[str]] = None,
 ) -> DataAnalysisState:
     """Initialize a new DataAnalysisState with defaults
 
@@ -107,45 +114,38 @@ def initialize_state(
         filename=filename,
         user_message=user_message,
         conversation_history=conversation_history or [],
-
         # Data (may be pre-populated from simple_workflow)
         data_profile=data_profile,
         analysis_results=analysis_results,
         insights=insights,
-
         # Routing
         query_type=None,
         next=None,
-
         # Outputs
         agent_response=None,
         chart_type=None,
         chart_data=None,
-
         # Tools
         tool_calls=[],
         pending_tool=None,
         tool_result=None,
-
         # HITL
         requires_approval=False,
         approval_type=None,
         approval_context=None,
         approved=None,
         approval_feedback=None,
-
         # Critic
         critique=None,
         iteration_count=0,
         critique_history=[],
         max_iterations=MAX_ITERATIONS,
-
         # Metadata
         status="pending",
         error=None,
         processing_time=0.0,
         agent_used=None,
-        trace=[]
+        trace=[],
     )
 
 
@@ -154,7 +154,7 @@ def add_tool_call(
     tool_name: str,
     arguments: Dict[str, Any],
     result: Optional[Any] = None,
-    error: Optional[str] = None
+    error: Optional[str] = None,
 ) -> Dict[str, Any]:
     """Add a tool call to the state history
 
@@ -162,16 +162,13 @@ def add_tool_call(
     The tool_calls list uses operator.add, so it will append to existing list.
     """
     tool_call = ToolCall(
-        tool_name=tool_name,
-        arguments=arguments,
-        result=result,
-        error=error
+        tool_name=tool_name, arguments=arguments, result=result, error=error
     )
 
     return {
         "tool_calls": [tool_call],  # Will be appended due to operator.add
         "tool_result": result,
-        "trace": [f"🔧 Tool call: {tool_name} with args: {arguments}"]
+        "trace": [f"🔧 Tool call: {tool_name} with args: {arguments}"],
     }
 
 
@@ -197,7 +194,9 @@ def increment_iteration(state: DataAnalysisState) -> Dict[str, Any]:
 
     return {
         "iteration_count": new_count,
-        "trace": [f"🔄 Iteration {new_count}/{state.get('max_iterations', MAX_ITERATIONS)}"]
+        "trace": [
+            f"🔄 Iteration {new_count}/{state.get('max_iterations', MAX_ITERATIONS)}"
+        ],
     }
 
 
@@ -205,7 +204,7 @@ def add_critique(
     state: DataAnalysisState,
     score: float,
     critique: str,
-    reroute_to: Optional[str] = None
+    reroute_to: Optional[str] = None,
 ) -> Dict[str, Any]:
     """Add a critique result to state
 
@@ -215,16 +214,15 @@ def add_critique(
     passed = score >= CRITIC_THRESHOLD
 
     critique_result = CritiqueResult(
-        score=score,
-        critique=critique,
-        reroute_to=reroute_to,
-        passed=passed
+        score=score, critique=critique, reroute_to=reroute_to, passed=passed
     )
 
     return {
         "critique": critique_result,
         "critique_history": [critique_result],  # Will be appended due to operator.add
-        "trace": [f"🎯 Critic: Score={score:.2f}, Passed={passed}, Reroute={reroute_to}"]
+        "trace": [
+            f"🎯 Critic: Score={score:.2f}, Passed={passed}, Reroute={reroute_to}"
+        ],
     }
 
 
@@ -241,7 +239,7 @@ def get_full_trace(state: DataAnalysisState) -> str:
     if not trace:
         return "No trace available"
 
-    return "\n".join(f"{i+1}. {msg}" for i, msg in enumerate(trace))
+    return "\n".join(f"{i + 1}. {msg}" for i, msg in enumerate(trace))
 
 
 def get_trace_summary(state: DataAnalysisState) -> Dict[str, Any]:
@@ -257,5 +255,5 @@ def get_trace_summary(state: DataAnalysisState) -> Dict[str, Any]:
         "iterations": state.get("iteration_count", 0),
         "current_agent": state.get("agent_used"),
         "status": state.get("status"),
-        "trace_messages": trace
+        "trace_messages": trace,
     }

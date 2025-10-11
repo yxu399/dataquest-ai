@@ -1,0 +1,91 @@
+{
+  "timestamp": "2025-10-10T22:23:40.639216",
+  "python_version": "3.13.5",
+  "pandas_version": "2.3.2",
+  "results": [
+    {
+      "rows": 1000,
+      "cols": 10,
+      "file_size_bytes": 138782,
+      "generation_time_s": 0.0072290897369384766,
+      "write_time_s": 0.007823944091796875,
+      "analysis_time_s": 0.02364516258239746,
+      "memory_peak_bytes": 4841472,
+      "success": true,
+      "error": null,
+      "rating": "\u2705 EXCELLENT"
+    },
+    {
+      "rows": 5000,
+      "cols": 10,
+      "file_size_bytes": 697912,
+      "generation_time_s": 0.0045468807220458984,
+      "write_time_s": 0.0374600887298584,
+      "analysis_time_s": 0.04899191856384277,
+      "memory_peak_bytes": 9723904,
+      "success": true,
+      "error": null,
+      "rating": "\u2705 EXCELLENT"
+    },
+    {
+      "rows": 10000,
+      "cols": 10,
+      "file_size_bytes": 1397132,
+      "generation_time_s": 0.010495901107788086,
+      "write_time_s": 0.07886481285095215,
+      "analysis_time_s": 0.07346510887145996,
+      "memory_peak_bytes": 18726912,
+      "success": true,
+      "error": null,
+      "rating": "\u2705 EXCELLENT"
+    },
+    {
+      "rows": 25000,
+      "cols": 10,
+      "file_size_bytes": 3509107,
+      "generation_time_s": 0.030942916870117188,
+      "write_time_s": 0.15657496452331543,
+      "analysis_time_s": 0.17624878883361816,
+      "memory_peak_bytes": 34316288,
+      "success": true,
+      "error": null,
+      "rating": "\u2705 GOOD"
+    },
+    {
+      "rows": 50000,
+      "cols": 10,
+      "file_size_bytes": 7028728,
+      "generation_time_s": 0.0473940372467041,
+      "write_time_s": 0.26458120346069336,
+      "analysis_time_s": 0.35599803924560547,
+      "memory_peak_bytes": 73486336,
+      "success": true,
+      "error": null,
+      "rating": "\u2705 GOOD"
+    },
+    {
+      "rows": 100000,
+      "cols": 10,
+      "file_size_bytes": 14068710,
+      "generation_time_s": 0.06951904296875,
+      "write_time_s": 0.5076701641082764,
+      "analysis_time_s": 0.8949508666992188,
+      "memory_peak_bytes": 115449856,
+      "success": true,
+      "error": null,
+      "rating": "\u2705 GOOD"
+    },
+    {
+      "rows": 250000,
+      "cols": 10,
+      "file_size_bytes": 35339901,
+      "generation_time_s": 0.14647293090820312,
+      "write_time_s": 1.3369221687316895,
+      "analysis_time_s": 1.763556957244873,
+      "memory_peak_bytes": 271065088,
+      "success": true,
+      "error": null,
+      "rating": "\ud83d\udfe1 ACCEPTABLE"
+    }
+  ]
+}

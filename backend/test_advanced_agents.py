@@ -3,11 +3,13 @@
 Test script for advanced LangGraph agents
 Tests Tool Agent and Statistical Agent with real data
 """
+
 import sys
 import os
 
 # Load environment variables from .env
 from dotenv import load_dotenv
+
 load_dotenv()
 
 # Add backend to path
@@ -22,12 +24,13 @@ from app.agents.tools import TOOL_EXECUTORS, AVAILABLE_TOOLS
 # Helper Functions
 # ============================================================================
 
+
 def find_test_file():
     """Find an available test CSV file"""
     test_files = [
         "test_data/sample.csv",
         "uploads/business_sales_data copy.csv",
-        "test_data/test_1000x10.csv"
+        "test_data/test_1000x10.csv",
     ]
 
     for f in test_files:
@@ -36,15 +39,16 @@ def find_test_file():
     return None
 
 
-def get_test_column(file_path, column_type='numeric'):
+def get_test_column(file_path, column_type="numeric"):
     """Get a test column from the file"""
     import pandas as pd
+
     try:
         df = pd.read_csv(file_path)
-        if column_type == 'numeric':
-            cols = df.select_dtypes(include=['number']).columns.tolist()
+        if column_type == "numeric":
+            cols = df.select_dtypes(include=["number"]).columns.tolist()
         else:
-            cols = df.select_dtypes(include=['object']).columns.tolist()
+            cols = df.select_dtypes(include=["object"]).columns.tolist()
 
         return cols[0] if cols else None
     except Exception:
@@ -79,14 +83,11 @@ def run_tool_test(test_name, tool_name, tool_args, expected_result_keys=None):
     state = initialize_state(
         file_path=test_file,
         filename=os.path.basename(test_file),
-        user_message=f"Testing {tool_name}"
+        user_message=f"Testing {tool_name}",
     )
 
     # Create tool request
-    tool_request = create_tool_call_request(
-        tool_name=tool_name,
-        arguments=tool_args
-    )
+    tool_request = create_tool_call_request(tool_name=tool_name, arguments=tool_args)
 
     state["pending_tool"] = tool_request
 
@@ -100,55 +101,56 @@ def run_tool_test(test_name, tool_name, tool_args, expected_result_keys=None):
     print("\n📊 Results:")
     print(f"  - Status: {result.get('status')}")
 
-    if result.get('error'):
+    if result.get("error"):
         print(f"  - Error: {result.get('error')}")
         print("\n❌ Test FAILED")
         return False
 
-    if not result.get('tool_result'):
+    if not result.get("tool_result"):
         print("  - No tool result returned")
         print("\n❌ Test FAILED")
         return False
 
-    tool_result = result['tool_result']
+    tool_result = result["tool_result"]
 
     # Print relevant results based on tool type
-    if tool_name == 'calculate_correlation':
+    if tool_name == "calculate_correlation":
         print(f"  - Correlations found: {tool_result.get('total_pairs', 0)}")
         print(f"  - Method: {tool_result.get('method')}")
-        if tool_result.get('correlations'):
+        if tool_result.get("correlations"):
             print("\n  Top correlations:")
-            for corr in tool_result['correlations'][:3]:
-                print(f"    - {corr['column1']} ↔ {corr['column2']}: "
-                      f"{corr['correlation']}")
+            for corr in tool_result["correlations"][:3]:
+                print(
+                    f"    - {corr['column1']} ↔ {corr['column2']}: "
+                    f"{corr['correlation']}"
+                )
 
-    elif tool_name == 'aggregate_data':
+    elif tool_name == "aggregate_data":
         print(f"  - Operation: {tool_result.get('operation')}")
         print(f"  - Column: {tool_result.get('column')}")
         print(f"  - Result: {tool_result.get('result')}")
 
-    elif tool_name == 'filter_data':
+    elif tool_name == "filter_data":
         print(f"  - Original rows: {tool_result.get('original_rows')}")
         print(f"  - Filtered rows: {tool_result.get('filtered_rows')}")
-        print(f"  - Filter: {tool_result.get('column')} "
-              f"{tool_result.get('operator')}")
+        print(f"  - Filter: {tool_result.get('column')} {tool_result.get('operator')}")
 
-    elif tool_name == 'analyze_distribution':
+    elif tool_name == "analyze_distribution":
         print(f"  - Column: {tool_result.get('column')}")
-        if tool_result.get('statistics'):
-            stats = tool_result['statistics']
+        if tool_result.get("statistics"):
+            stats = tool_result["statistics"]
             print(f"  - Mean: {stats.get('mean'):.2f}")
             print(f"  - Median: {stats.get('median'):.2f}")
 
-    elif tool_name == 'count_values':
+    elif tool_name == "count_values":
         print(f"  - Column: {tool_result.get('column')}")
         print(f"  - Total unique: {tool_result.get('total_unique')}")
-        counts = tool_result.get('counts', {})
+        counts = tool_result.get("counts", {})
         print(f"  - Top values: {len(counts)}")
 
     # Print trace
     print("\n📝 Execution Trace:")
-    for trace_msg in result.get('trace', []):
+    for trace_msg in result.get("trace", []):
         print(f"  {trace_msg}")
 
     # Verify expected result keys
@@ -159,8 +161,10 @@ def run_tool_test(test_name, tool_name, tool_args, expected_result_keys=None):
             return False
 
     # Success check
-    success = (result.get('status') == 'tool_executed' and
-               result.get('tool_result') is not None)
+    success = (
+        result.get("status") == "tool_executed"
+        and result.get("tool_result") is not None
+    )
 
     print(f"\n{'✅ Test PASSED' if success else '❌ Test FAILED'}")
     return success
@@ -170,13 +174,14 @@ def run_tool_test(test_name, tool_name, tool_args, expected_result_keys=None):
 # Test Functions
 # ============================================================================
 
+
 def test_tool_agent_correlation():
     """Test Tool Agent with correlation analysis"""
     return run_tool_test(
         test_name="Tool Agent - Correlation Analysis",
         tool_name="calculate_correlation",
         tool_args={"threshold": 0.7, "method": "pearson"},
-        expected_result_keys=["correlations", "method", "total_pairs"]
+        expected_result_keys=["correlations", "method", "total_pairs"],
     )
 
 
@@ -187,7 +192,7 @@ def test_tool_agent_aggregation():
         print("\n❌ No test file found for aggregation test")
         return False
 
-    test_column = get_test_column(test_file, column_type='numeric')
+    test_column = get_test_column(test_file, column_type="numeric")
     if not test_column:
         print("\n❌ No numeric column found in test file")
         return False
@@ -196,7 +201,7 @@ def test_tool_agent_aggregation():
         test_name=f"Tool Agent - Aggregation (mean of {test_column})",
         tool_name="aggregate_data",
         tool_args={"column": test_column, "operation": "mean"},
-        expected_result_keys=["result", "operation", "column"]
+        expected_result_keys=["result", "operation", "column"],
     )
 
 
@@ -206,22 +211,15 @@ def test_tool_agent_filter():
     if not test_file:
         return False
 
-    test_column = get_test_column(test_file, column_type='numeric')
+    test_column = get_test_column(test_file, column_type="numeric")
     if not test_column:
         return False
 
     return run_tool_test(
         test_name=f"Tool Agent - Filter ({test_column} > 100)",
         tool_name="filter_data",
-        tool_args={
-            "column": test_column,
-            "operator": ">",
-            "value": 100,
-            "limit": 5
-        },
-        expected_result_keys=[
-            "filtered_data", "original_rows", "filtered_rows"
-        ]
+        tool_args={"column": test_column, "operator": ">", "value": 100, "limit": 5},
+        expected_result_keys=["filtered_data", "original_rows", "filtered_rows"],
     )
 
 
@@ -231,7 +229,7 @@ def test_tool_agent_distribution():
     if not test_file:
         return False
 
-    test_column = get_test_column(test_file, column_type='numeric')
+    test_column = get_test_column(test_file, column_type="numeric")
     if not test_column:
         return False
 
@@ -239,7 +237,7 @@ def test_tool_agent_distribution():
         test_name=f"Tool Agent - Distribution ({test_column})",
         tool_name="analyze_distribution",
         tool_args={"column": test_column, "bins": 10, "include_stats": True},
-        expected_result_keys=["histogram", "statistics", "column"]
+        expected_result_keys=["histogram", "statistics", "column"],
     )
 
 
@@ -249,7 +247,7 @@ def test_tool_agent_value_counts():
     if not test_file:
         return False
 
-    test_column = get_test_column(test_file, column_type='categorical')
+    test_column = get_test_column(test_file, column_type="categorical")
     if not test_column:
         print("\n⚠️  No categorical column found - skipping value_counts test")
         return None  # Skip, not fail
@@ -258,7 +256,7 @@ def test_tool_agent_value_counts():
         test_name=f"Tool Agent - Value Counts ({test_column})",
         tool_name="count_values",
         tool_args={"column": test_column, "top_n": 5},
-        expected_result_keys=["counts", "total_unique", "column"]
+        expected_result_keys=["counts", "total_unique", "column"],
     )
 
 
@@ -292,12 +290,10 @@ def test_statistical_agent():
         data_profile = {
             "shape": list(df.shape),
             "columns": df.columns.tolist(),
-            "numeric_columns": df.select_dtypes(
-                include=['number']
-            ).columns.tolist(),
+            "numeric_columns": df.select_dtypes(include=["number"]).columns.tolist(),
             "categorical_columns": df.select_dtypes(
-                include=['object']
-            ).columns.tolist()
+                include=["object"]
+            ).columns.tolist(),
         }
 
         # Initialize state
@@ -305,10 +301,10 @@ def test_statistical_agent():
             file_path=test_file,
             filename=os.path.basename(test_file),
             user_message="Show me the correlations in this dataset",
-            data_profile=data_profile
+            data_profile=data_profile,
         )
 
-        print(f"\n📊 Dataset Info:")
+        print("\n📊 Dataset Info:")
         print(f"  - Shape: {data_profile['shape']}")
         print(f"  - Numeric columns: {data_profile['numeric_columns']}")
 
@@ -321,21 +317,21 @@ def test_statistical_agent():
         print(f"  - Agent used: {result.get('agent_used')}")
         print(f"  - Next node: {result.get('next')}")
 
-        has_response = result.get('agent_response') is not None
-        has_tool = result.get('pending_tool') is not None
+        has_response = result.get("agent_response") is not None
+        has_tool = result.get("pending_tool") is not None
 
         if has_tool:
-            pending = result['pending_tool']
+            pending = result["pending_tool"]
             print(f"  - Tool requested: {pending['tool_name']}")
             print(f"  - Arguments: {pending['arguments']}")
 
         if has_response:
-            response = result['agent_response']
+            response = result["agent_response"]
             preview = response[:200] + "..." if len(response) > 200 else response
             print(f"  - Response: {preview}")
 
         print("\n📝 Execution Trace:")
-        for trace_msg in result.get('trace', []):
+        for trace_msg in result.get("trace", []):
             print(f"  {trace_msg}")
 
         # Success if agent either planned a tool call OR provided a response
@@ -347,6 +343,7 @@ def test_statistical_agent():
     except Exception as e:
         print(f"❌ Test FAILED with error: {e}")
         import traceback
+
         traceback.print_exc()
         return False
 

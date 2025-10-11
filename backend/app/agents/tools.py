@@ -4,6 +4,7 @@ These tools are used by Statistical and Query agents to request specific
 data operations. The Tool Agent executes these requests safely using the
 TOOL_EXECUTORS registry.
 """
+
 from typing import List, Optional, Dict, Any
 from pydantic import BaseModel, Field
 from langchain_core.tools import tool
@@ -15,76 +16,73 @@ import numpy as np
 # Tool Input Schemas (Pydantic models for structured tool calls)
 # ============================================================================
 
+
 class CorrelationInput(BaseModel):
     """Input for correlation analysis tool"""
+
     columns: Optional[List[str]] = Field(
         None,
-        description="Specific columns to analyze. If None, analyze all numeric columns."
+        description="Specific columns to analyze. If None, analyze all numeric columns.",
     )
     method: str = Field(
-        "pearson",
-        description="Correlation method: 'pearson', 'spearman', or 'kendall'"
+        "pearson", description="Correlation method: 'pearson', 'spearman', or 'kendall'"
     )
     threshold: float = Field(
-        0.7,
-        description="Minimum absolute correlation value to report (0-1)"
+        0.7, description="Minimum absolute correlation value to report (0-1)"
     )
 
 
 class AggregationInput(BaseModel):
     """Input for data aggregation tool"""
+
     column: str = Field(description="Column to aggregate")
     operation: str = Field(
         description="Aggregation operation: 'mean', 'median', 'sum', 'min', 'max', 'count', 'std'"
     )
     group_by: Optional[str] = Field(
-        None,
-        description="Column to group by before aggregating"
+        None, description="Column to group by before aggregating"
     )
 
 
 class FilterInput(BaseModel):
     """Input for data filtering tool"""
+
     column: str = Field(description="Column to filter on")
     operator: str = Field(
         description="Comparison operator: '>', '<', '>=', '<=', '==', '!=', 'contains', 'in'"
     )
     value: Any = Field(description="Value to compare against")
     limit: Optional[int] = Field(
-        10,
-        description="Maximum number of rows to return after filtering"
+        10, description="Maximum number of rows to return after filtering"
     )
 
 
 class DistributionInput(BaseModel):
     """Input for distribution analysis tool"""
+
     column: str = Field(description="Column to analyze distribution")
     bins: int = Field(10, description="Number of bins for histogram")
     include_stats: bool = Field(
-        True,
-        description="Include statistical summary (mean, median, quartiles)"
+        True, description="Include statistical summary (mean, median, quartiles)"
     )
 
 
 class ValueCountsInput(BaseModel):
     """Input for value counts tool"""
+
     column: str = Field(description="Categorical column to count values")
     top_n: int = Field(10, description="Number of top values to return")
-    normalize: bool = Field(
-        False,
-        description="Return proportions instead of counts"
-    )
+    normalize: bool = Field(False, description="Return proportions instead of counts")
 
 
 # ============================================================================
 # Tool Definitions (Used by LLMs to structure requests)
 # ============================================================================
 
+
 @tool
 def calculate_correlation(
-    columns: Optional[List[str]] = None,
-    method: str = "pearson",
-    threshold: float = 0.7
+    columns: Optional[List[str]] = None, method: str = "pearson", threshold: float = 0.7
 ) -> Dict[str, Any]:
     """Calculate correlation between numeric columns in the dataset.
 
@@ -108,9 +106,7 @@ def calculate_correlation(
 
 @tool
 def aggregate_data(
-    column: str,
-    operation: str,
-    group_by: Optional[str] = None
+    column: str, operation: str, group_by: Optional[str] = None
 ) -> Dict[str, Any]:
     """Perform aggregation on a column, optionally grouped by another column.
 
@@ -133,10 +129,7 @@ def aggregate_data(
 
 @tool
 def filter_data(
-    column: str,
-    operator: str,
-    value: Any,
-    limit: int = 10
+    column: str, operator: str, value: Any, limit: int = 10
 ) -> Dict[str, Any]:
     """Filter dataset based on a condition and return matching rows.
 
@@ -160,9 +153,7 @@ def filter_data(
 
 @tool
 def analyze_distribution(
-    column: str,
-    bins: int = 10,
-    include_stats: bool = True
+    column: str, bins: int = 10, include_stats: bool = True
 ) -> Dict[str, Any]:
     """Analyze the distribution of values in a numeric column.
 
@@ -185,9 +176,7 @@ def analyze_distribution(
 
 @tool
 def count_values(
-    column: str,
-    top_n: int = 10,
-    normalize: bool = False
+    column: str, top_n: int = 10, normalize: bool = False
 ) -> Dict[str, Any]:
     """Count occurrences of each unique value in a categorical column.
 
@@ -212,20 +201,21 @@ def count_values(
 # Tool Execution Functions (Called by Tool Agent)
 # ============================================================================
 
+
 def execute_correlation(df: pd.DataFrame, params: CorrelationInput) -> Dict[str, Any]:
     """Execute correlation analysis on DataFrame"""
     # Select numeric columns
     if params.columns:
-        numeric_cols = [col for col in params.columns if col in df.select_dtypes(include=[np.number]).columns]
+        numeric_cols = [
+            col
+            for col in params.columns
+            if col in df.select_dtypes(include=[np.number]).columns
+        ]
     else:
         numeric_cols = df.select_dtypes(include=[np.number]).columns.tolist()
 
     if len(numeric_cols) < 2:
-        return {
-            "correlations": [],
-            "method": params.method,
-            "total_pairs": 0
-        }
+        return {"correlations": [], "method": params.method, "total_pairs": 0}
 
     # Calculate correlation matrix
     corr_matrix = df[numeric_cols].corr(method=params.method)
@@ -236,12 +226,14 @@ def execute_correlation(df: pd.DataFrame, params: CorrelationInput) -> Dict[str,
         for j in range(i + 1, len(corr_matrix.columns)):
             corr_val = corr_matrix.iloc[i, j]
             if not pd.isna(corr_val) and abs(corr_val) >= params.threshold:
-                correlations.append({
-                    "column1": corr_matrix.columns[i],
-                    "column2": corr_matrix.columns[j],
-                    "correlation": round(float(corr_val), 3),
-                    "strength": "strong" if abs(corr_val) >= 0.8 else "moderate"
-                })
+                correlations.append(
+                    {
+                        "column1": corr_matrix.columns[i],
+                        "column2": corr_matrix.columns[j],
+                        "correlation": round(float(corr_val), 3),
+                        "strength": "strong" if abs(corr_val) >= 0.8 else "moderate",
+                    }
+                )
 
     # Sort by absolute correlation
     correlations.sort(key=lambda x: abs(x["correlation"]), reverse=True)
@@ -249,7 +241,7 @@ def execute_correlation(df: pd.DataFrame, params: CorrelationInput) -> Dict[str,
     return {
         "correlations": correlations,
         "method": params.method,
-        "total_pairs": len(correlations)
+        "total_pairs": len(correlations),
     }
 
 
@@ -272,7 +264,7 @@ def execute_aggregation(df: pd.DataFrame, params: AggregationInput) -> Dict[str,
             "min": grouped.min,
             "max": grouped.max,
             "count": grouped.count,
-            "std": grouped.std
+            "std": grouped.std,
         }
 
         if params.operation not in operations:
@@ -280,7 +272,10 @@ def execute_aggregation(df: pd.DataFrame, params: AggregationInput) -> Dict[str,
 
         result_series = operations[params.operation]()
         # Convert to serializable format
-        result = {str(k): float(v) if pd.notna(v) else None for k, v in result_series.to_dict().items()}
+        result = {
+            str(k): float(v) if pd.notna(v) else None
+            for k, v in result_series.to_dict().items()
+        }
 
     else:
         # Simple aggregation
@@ -293,7 +288,7 @@ def execute_aggregation(df: pd.DataFrame, params: AggregationInput) -> Dict[str,
             "min": lambda: float(series.min()),
             "max": lambda: float(series.max()),
             "count": lambda: int(series.count()),
-            "std": lambda: float(series.std())
+            "std": lambda: float(series.std()),
         }
 
         if params.operation not in operations:
@@ -305,7 +300,7 @@ def execute_aggregation(df: pd.DataFrame, params: AggregationInput) -> Dict[str,
         "result": result,
         "operation": params.operation,
         "column": params.column,
-        "group_by": params.group_by
+        "group_by": params.group_by,
     }
 
 
@@ -324,8 +319,10 @@ def execute_filter(df: pd.DataFrame, params: FilterInput) -> Dict[str, Any]:
         "<=": lambda: df[df[params.column] <= params.value],
         "==": lambda: df[df[params.column] == params.value],
         "!=": lambda: df[df[params.column] != params.value],
-        "contains": lambda: df[df[params.column].astype(str).str.contains(str(params.value), na=False)],
-        "in": lambda: df[df[params.column].isin(params.value)]
+        "contains": lambda: df[
+            df[params.column].astype(str).str.contains(str(params.value), na=False)
+        ],
+        "in": lambda: df[df[params.column].isin(params.value)],
     }
 
     if params.operator not in operators:
@@ -338,14 +335,14 @@ def execute_filter(df: pd.DataFrame, params: FilterInput) -> Dict[str, Any]:
         filtered_df = filtered_df.head(params.limit)
 
     # Convert to dict format
-    filtered_data = filtered_df.to_dict('records')
+    filtered_data = filtered_df.to_dict("records")
 
     return {
         "filtered_data": filtered_data,
         "original_rows": original_rows,
         "filtered_rows": len(filtered_df),
         "column": params.column,
-        "operator": params.operator
+        "operator": params.operator,
     }
 
 
@@ -361,12 +358,12 @@ def execute_distribution(df: pd.DataFrame, params: DistributionInput) -> Dict[st
 
     # Create histogram
     counts, bin_edges = np.histogram(series, bins=params.bins)
-    bins = [(float(bin_edges[i]), float(bin_edges[i + 1])) for i in range(len(bin_edges) - 1)]
+    bins = [
+        (float(bin_edges[i]), float(bin_edges[i + 1]))
+        for i in range(len(bin_edges) - 1)
+    ]
 
-    histogram = {
-        "bins": bins,
-        "counts": counts.tolist()
-    }
+    histogram = {"bins": bins, "counts": counts.tolist()}
 
     # Calculate statistics if requested
     statistics = None
@@ -378,14 +375,10 @@ def execute_distribution(df: pd.DataFrame, params: DistributionInput) -> Dict[st
             "min": float(series.min()),
             "max": float(series.max()),
             "q1": float(series.quantile(0.25)),
-            "q3": float(series.quantile(0.75))
+            "q3": float(series.quantile(0.75)),
         }
 
-    return {
-        "histogram": histogram,
-        "statistics": statistics,
-        "column": params.column
-    }
+    return {"histogram": histogram, "statistics": statistics, "column": params.column}
 
 
 def execute_value_counts(df: pd.DataFrame, params: ValueCountsInput) -> Dict[str, Any]:
@@ -404,7 +397,7 @@ def execute_value_counts(df: pd.DataFrame, params: ValueCountsInput) -> Dict[str
     return {
         "counts": counts,
         "total_unique": int(series.nunique()),
-        "column": params.column
+        "column": params.column,
     }
 
 
@@ -417,7 +410,7 @@ AVAILABLE_TOOLS = [
     aggregate_data,
     filter_data,
     analyze_distribution,
-    count_values
+    count_values,
 ]
 
 TOOL_EXECUTORS = {
@@ -425,7 +418,7 @@ TOOL_EXECUTORS = {
     "aggregate_data": execute_aggregation,
     "filter_data": execute_filter,
     "analyze_distribution": execute_distribution,
-    "count_values": execute_value_counts
+    "count_values": execute_value_counts,
 }
 
 TOOL_INPUT_SCHEMAS = {
@@ -433,5 +426,5 @@ TOOL_INPUT_SCHEMAS = {
     "aggregate_data": AggregationInput,
     "filter_data": FilterInput,
     "analyze_distribution": DistributionInput,
-    "count_values": ValueCountsInput
+    "count_values": ValueCountsInput,
 }
