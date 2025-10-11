@@ -89,7 +89,13 @@ def completed_analysis(db_session, sample_csv_content):
                 "value": "float64",
                 "quantity": "int64",
             },
-            "missing_data": {"id": 0, "name": 0, "category": 0, "value": 0, "quantity": 0},
+            "missing_data": {
+                "id": 0,
+                "name": 0,
+                "category": 0,
+                "value": 0,
+                "quantity": 0,
+            },
             "numeric_columns": ["id", "value", "quantity"],
             "categorical_columns": ["name", "category"],
             "sample_data": [
