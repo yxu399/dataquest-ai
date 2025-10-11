@@ -82,6 +82,14 @@ def completed_analysis(db_session, sample_csv_content):
         data_profile={
             "shape": [5, 5],
             "columns": ["id", "name", "category", "value", "quantity"],
+            "dtypes": {
+                "id": "int64",
+                "name": "object",
+                "category": "object",
+                "value": "float64",
+                "quantity": "int64",
+            },
+            "missing_data": {"id": 0, "name": 0, "category": 0, "value": 0, "quantity": 0},
             "numeric_columns": ["id", "value", "quantity"],
             "categorical_columns": ["name", "category"],
             "sample_data": [
