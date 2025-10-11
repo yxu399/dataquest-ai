@@ -44,7 +44,6 @@ jobs:
 
       - name: Run Ruff formatter check
         run: uv run ruff format --check .
-        continue-on-error: true  # Temporary: Remove after fixing existing issues (see GitHub issues)
 
   test:
     name: Run Tests
