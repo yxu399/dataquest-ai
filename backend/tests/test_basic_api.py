@@ -10,9 +10,26 @@ sys.path.insert(0, backend_root)
 # Import the FastAPI app
 from main import app
 
+# Try to import database utilities (may fail if database not configured)
+try:
+    from app.core.database import create_tables, test_database_connection
+    DB_AVAILABLE = True
+except ImportError:
+    DB_AVAILABLE = False
+
+@pytest.fixture(scope="session")
+def setup_database():
+    """Setup database tables once for all tests"""
+    if DB_AVAILABLE and test_database_connection():
+        create_tables()
+        yield
+    else:
+        # Database not available, tests will be skipped or adjusted
+        yield
+
 @pytest.fixture
-def client():
-    """FastAPI test client"""
+def client(setup_database):
+    """FastAPI test client with database setup"""
     return TestClient(app)
 
 
@@ -81,14 +98,24 @@ class TestCORSConfiguration:
 
 class TestFileUploadEndpoints:
     """Test file upload related endpoints (if they exist)"""
-    
+
     def test_files_endpoint_exists(self, client):
         """Test if files endpoints are accessible"""
         # Test if the files router is properly mounted
         response = client.get("/api/v1/files/analyses")
-        
-        # Should either work or give a proper HTTP error (not 404 for route)
-        assert response.status_code != 404 or "not found" not in response.text.lower()
+
+        # If database is not available, we should get 500 error but route should exist (not 404)
+        # If database is available, we should get 200 with response object
+        assert response.status_code in [200, 500], f"Expected 200 or 500, got {response.status_code}"
+
+        # If successful, verify the response structure
+        if response.status_code == 200:
+            data = response.json()
+            assert isinstance(data, dict), "Response should be a dictionary"
+            assert "analyses" in data, "Response should contain 'analyses' key"
+            assert isinstance(data["analyses"], list), "analyses should be a list"
+            assert "count" in data, "Response should contain 'count' key"
+            assert "success" in data, "Response should contain 'success' key"
 
 
 class TestApplicationStartup:
