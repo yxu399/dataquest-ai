@@ -1,8 +1,11 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
+import { MessageSquare } from 'lucide-react';
 import { Stepper, StepperStep } from './common/Stepper';
 import { apiService, UploadResponse, AnalysisStatus, AnalysisResults } from '../services/api';
 import { ChartSelector } from './charts/ChartSelector';
 import { ChatInterface } from './chat/ChatInterface';
+import { Button } from './ui/button';
 
 export const Dashboard: React.FC = () => {
   const [currentStep, setCurrentStep] = useState(0);
@@ -119,26 +122,24 @@ export const Dashboard: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <div className="bg-white shadow">
+    <div className="min-h-screen bg-background">
+      {/* Header - matching landing page style */}
+      <header className="sticky top-0 z-50 border-b border-border/40 bg-background/80 backdrop-blur-lg">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-6">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900">DataQuest AI</h1>
-              <p className="text-gray-600">Intelligent Data Analysis Platform</p>
-            </div>
+          <div className="flex justify-between items-center py-4">
+            <Link to="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
+              <MessageSquare className="h-6 w-6 text-primary" />
+              <span className="font-sans text-xl font-semibold">DataQuest</span>
+            </Link>
+
             {currentStep > 0 && (
-              <button
-                onClick={resetDashboard}
-                className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
-              >
+              <Button variant="outline" onClick={resetDashboard}>
                 New Analysis
-              </button>
+              </Button>
             )}
           </div>
         </div>
-      </div>
+      </header>
 
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -161,16 +162,16 @@ export const Dashboard: React.FC = () => {
         )}
 
         {/* Step Content */}
-        <div className="bg-white rounded-lg shadow p-6">
+        <div className="bg-card rounded-lg shadow border border-border p-6">
           {currentStep === 0 && (
             <div>
-              <h2 className="text-xl font-semibold mb-4">Upload Your Dataset</h2>
-              <p className="text-gray-600 mb-6">
+              <h2 className="text-xl font-semibold text-foreground mb-4">Upload Your Dataset</h2>
+              <p className="text-muted-foreground mb-6">
                 Upload your CSV file to get started with intelligent data analysis.
               </p>
-              
+
               <div className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
-                isUploading ? 'border-blue-300 bg-blue-50' : 'border-gray-300 hover:border-gray-400'
+                isUploading ? 'border-primary/30 bg-primary/5' : 'border-border hover:border-primary/50'
               }`}>
                 <div className="text-4xl mb-4">📊</div>
                 <input 
