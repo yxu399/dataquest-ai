@@ -1,0 +1,29 @@
+{
+  "workflow_id": "test_tool_tracking",
+  "workflow_mode": "regular",
+  "timestamp": "2025-10-12T00:28:20.580966",
+  "total_duration_ms": 100.0,
+  "agent_duration_ms": {},
+  "tool_execution_times": {
+    "calculate_correlation": 30.0,
+    "aggregate_data": 15.0,
+    "filter_data": 20.0
+  },
+  "query_type": null,
+  "agents_used": [],
+  "routing_path": [],
+  "quality_scores": [],
+  "final_quality_score": null,
+  "iterations_count": 0,
+  "critic_evaluations": 0,
+  "status": "completed",
+  "error_message": null,
+  "requires_approval": false,
+  "tools_called": [
+    "calculate_correlation",
+    "aggregate_data",
+    "filter_data"
+  ],
+  "tool_success_count": 2,
+  "tool_failure_count": 1
+}

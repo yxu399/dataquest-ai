@@ -13,6 +13,7 @@ class Settings(BaseSettings):
 
     # AI/LLM settings
     anthropic_api_key: Optional[str] = None
+    anthropic_model_name: str = "claude-3-5-sonnet-20241022"  # Default Claude model
     langchain_api_key: Optional[str] = None
     langchain_tracing_v2: bool = True
     langchain_project: str = "dataquest-ai"

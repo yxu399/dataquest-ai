@@ -10,7 +10,7 @@ from langchain_core.messages import SystemMessage, HumanMessage
 from app.agents.enhanced_state import DataAnalysisState, add_trace
 from app.agents.tool_agent import create_tool_call_request
 from app.agents.tools import AVAILABLE_TOOLS
-import os
+from app.core.config import settings
 import json
 
 
@@ -22,21 +22,22 @@ class StatisticalAgent:
     tool calls for the Tool Agent to execute.
     """
 
-    def __init__(self, model_name: str = "claude-3-5-sonnet-20241022"):
+    def __init__(self, model_name: str | None = None):
         """Initialize Statistical Agent with Claude
 
         Args:
-            model_name: Claude model to use for planning
+            model_name: Claude model to use (defaults to settings.anthropic_model_name)
         """
-        api_key = os.getenv("ANTHROPIC_API_KEY")
-        if not api_key:
+        if not settings.anthropic_api_key:
             raise ValueError(
                 "ANTHROPIC_API_KEY environment variable required for Statistical Agent"
             )
 
+        self.model_name = model_name or settings.anthropic_model_name
         self.llm = ChatAnthropic(
-            model=model_name,
+            model=self.model_name,
             temperature=0.3,  # Lower temperature for precise statistical reasoning
+            api_key=settings.anthropic_api_key,
         )
 
         # Bind tools to the LLM (uses with_structured_output for tool calling)

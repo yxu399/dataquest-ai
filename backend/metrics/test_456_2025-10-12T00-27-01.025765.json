@@ -1,0 +1,33 @@
+{
+  "workflow_id": "test_456",
+  "workflow_mode": "hitl",
+  "timestamp": "2025-10-12T00:27:01.025765",
+  "total_duration_ms": 0.0171661376953125,
+  "agent_duration_ms": {
+    "statistical_agent": 150.5
+  },
+  "tool_execution_times": {
+    "calculate_correlation": 27.3
+  },
+  "query_type": null,
+  "agents_used": [
+    "statistical_agent"
+  ],
+  "routing_path": [
+    "statistical_agent"
+  ],
+  "quality_scores": [
+    0.85
+  ],
+  "final_quality_score": 0.85,
+  "iterations_count": 1,
+  "critic_evaluations": 1,
+  "status": "completed",
+  "error_message": null,
+  "requires_approval": false,
+  "tools_called": [
+    "calculate_correlation"
+  ],
+  "tool_success_count": 1,
+  "tool_failure_count": 0
+}

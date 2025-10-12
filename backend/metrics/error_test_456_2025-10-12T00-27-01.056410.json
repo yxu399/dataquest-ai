@@ -1,0 +1,27 @@
+{
+  "workflow_id": "error_test_456",
+  "workflow_mode": "regular",
+  "timestamp": "2025-10-12T00:27:01.056410",
+  "total_duration_ms": 0.007867813110351562,
+  "agent_duration_ms": {
+    "statistical_agent": 100.0
+  },
+  "tool_execution_times": {},
+  "query_type": null,
+  "agents_used": [
+    "statistical_agent"
+  ],
+  "routing_path": [
+    "statistical_agent"
+  ],
+  "quality_scores": [],
+  "final_quality_score": null,
+  "iterations_count": 0,
+  "critic_evaluations": 0,
+  "status": "error",
+  "error_message": "Test error",
+  "requires_approval": false,
+  "tools_called": [],
+  "tool_success_count": 0,
+  "tool_failure_count": 0
+}

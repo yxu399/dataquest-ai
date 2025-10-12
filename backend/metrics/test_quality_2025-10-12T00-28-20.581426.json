@@ -1,0 +1,25 @@
+{
+  "workflow_id": "test_quality",
+  "workflow_mode": "regular",
+  "timestamp": "2025-10-12T00:28:20.581426",
+  "total_duration_ms": 500.0,
+  "agent_duration_ms": {},
+  "tool_execution_times": {},
+  "query_type": null,
+  "agents_used": [],
+  "routing_path": [],
+  "quality_scores": [
+    0.65,
+    0.75,
+    0.85
+  ],
+  "final_quality_score": 0.85,
+  "iterations_count": 3,
+  "critic_evaluations": 3,
+  "status": "completed",
+  "error_message": null,
+  "requires_approval": false,
+  "tools_called": [],
+  "tool_success_count": 0,
+  "tool_failure_count": 0
+}

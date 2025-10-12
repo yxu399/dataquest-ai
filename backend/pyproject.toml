@@ -18,7 +18,7 @@ dependencies = [
     "alembic>=1.13.1",
     # AI/LLM
     "langchain>=0.1.0",
-    "langgraph>=0.0.20",
+    "langgraph>=0.2.0",
     "anthropic>=0.40.0",
     # Data Processing
     "pandas>=2.2.0",
@@ -34,9 +34,10 @@ dependencies = [
     "passlib[bcrypt]>=1.7.4",
     # Validation
     "email-validator>=2.1.1",
-    "langchain-anthropic>=0.1.4",
-    "langchain-core>=0.1.23",
+    "langchain-anthropic>=0.2.0",
+    "langchain-core>=0.3.0",
     "httpx<0.28.0",
+    "langgraph-checkpoint-sqlite>=1.0.0",
 ]
 
 [tool.uv]
