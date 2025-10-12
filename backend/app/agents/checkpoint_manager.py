@@ -70,7 +70,9 @@ class CheckpointManager:
             checkpoint = self.checkpointer.get(config)
             return checkpoint
         except sqlite3.Error as e:
-            logger.error(f"Database error getting checkpoint for thread {thread_id}: {e}")
+            logger.error(
+                f"Database error getting checkpoint for thread {thread_id}: {e}"
+            )
             return None
         except Exception as e:
             logger.error(
@@ -144,7 +146,9 @@ class CheckpointManager:
             conn.close()
 
             if deleted_count > 0:
-                logger.info(f"Deleted {deleted_count} checkpoints for thread {thread_id}")
+                logger.info(
+                    f"Deleted {deleted_count} checkpoints for thread {thread_id}"
+                )
                 return True
             else:
                 logger.warning(f"No checkpoints found for thread {thread_id}")
@@ -215,9 +219,13 @@ class CheckpointManager:
 
             results = []
             for row in cursor.fetchall():
-                thread_id, requires_approval, approval_type, approval_context, created_at = (
-                    row
-                )
+                (
+                    thread_id,
+                    requires_approval,
+                    approval_type,
+                    approval_context,
+                    created_at,
+                ) = row
 
                 if requires_approval:
                     results.append(

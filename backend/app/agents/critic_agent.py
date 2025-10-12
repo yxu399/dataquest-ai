@@ -253,13 +253,13 @@ IMPORTANT:
 
         # Format context information
         context_str = f"""DATASET CONTEXT:
-- Filename: {context.get('filename', 'Unknown')}
-- Shape: {context.get('dataset_shape', [0, 0])} (rows × columns)
-- Numeric columns: {', '.join(context.get('numeric_columns', [])[:5])}
-- Categorical columns: {', '.join(context.get('categorical_columns', [])[:5])}
-- Tools used: {', '.join(context.get('tools_used', [])) or 'None'}
-- Query type: {context.get('query_type', 'Unknown')}
-- Agent used: {context.get('agent_used', 'Unknown')}
+- Filename: {context.get("filename", "Unknown")}
+- Shape: {context.get("dataset_shape", [0, 0])} (rows × columns)
+- Numeric columns: {", ".join(context.get("numeric_columns", [])[:5])}
+- Categorical columns: {", ".join(context.get("categorical_columns", [])[:5])}
+- Tools used: {", ".join(context.get("tools_used", [])) or "None"}
+- Query type: {context.get("query_type", "Unknown")}
+- Agent used: {context.get("agent_used", "Unknown")}
 """
 
         user_prompt = f"""{context_str}
@@ -272,7 +272,10 @@ AGENT'S RESPONSE:
 
 Evaluate the quality of this response and provide your assessment in JSON format."""
 
-        messages = [SystemMessage(content=system_prompt), HumanMessage(content=user_prompt)]
+        messages = [
+            SystemMessage(content=system_prompt),
+            HumanMessage(content=user_prompt),
+        ]
 
         # Call LLM
         response = self.llm.invoke(messages)

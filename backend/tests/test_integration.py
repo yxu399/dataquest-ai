@@ -160,9 +160,15 @@ class TestMetricsCollection:
         collector = get_metrics_collector()
         collector.start_workflow("test_tool_tracking", "regular")
 
-        collector.record_tool_execution("test_tool_tracking", "calculate_correlation", 30.0, success=True)
-        collector.record_tool_execution("test_tool_tracking", "aggregate_data", 15.0, success=True)
-        collector.record_tool_execution("test_tool_tracking", "filter_data", 20.0, success=False)
+        collector.record_tool_execution(
+            "test_tool_tracking", "calculate_correlation", 30.0, success=True
+        )
+        collector.record_tool_execution(
+            "test_tool_tracking", "aggregate_data", 15.0, success=True
+        )
+        collector.record_tool_execution(
+            "test_tool_tracking", "filter_data", 20.0, success=False
+        )
 
         metrics = collector.complete_workflow(
             "test_tool_tracking", status="completed", total_duration_ms=100.0

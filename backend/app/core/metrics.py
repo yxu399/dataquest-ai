@@ -243,7 +243,9 @@ class MetricsCollector:
             for m in all_metrics
             if m.get("final_quality_score") is not None
         ]
-        avg_quality = sum(quality_scores) / len(quality_scores) if quality_scores else None
+        avg_quality = (
+            sum(quality_scores) / len(quality_scores) if quality_scores else None
+        )
 
         # Tool usage statistics
         all_tools = []

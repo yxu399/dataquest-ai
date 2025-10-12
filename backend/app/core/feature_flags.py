@@ -23,7 +23,9 @@ class FeatureFlags(BaseModel):
 
     # Workflow selection
     default_workflow_mode: WorkflowMode = WorkflowMode.REGULAR
-    enable_hitl_for_destructive_ops: bool = True  # Auto-enable HITL for risky operations
+    enable_hitl_for_destructive_ops: bool = (
+        True  # Auto-enable HITL for risky operations
+    )
 
     # Quality control
     enable_critic_agent: bool = True

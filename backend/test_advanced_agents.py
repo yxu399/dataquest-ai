@@ -455,13 +455,21 @@ Would you like me to analyze profit margins by specific product categories or ex
                 "arguments": {"threshold": 0.7, "method": "pearson"},
                 "result": {
                     "correlations": [
-                        {"column1": "unit_price", "column2": "cost_price", "correlation": 0.92},
-                        {"column1": "total_amount", "column2": "profit", "correlation": 0.81},
+                        {
+                            "column1": "unit_price",
+                            "column2": "cost_price",
+                            "correlation": 0.92,
+                        },
+                        {
+                            "column1": "total_amount",
+                            "column2": "profit",
+                            "correlation": 0.81,
+                        },
                     ],
                     "method": "pearson",
-                    "total_pairs": 2
+                    "total_pairs": 2,
                 },
-                "execution_time": 0.025
+                "execution_time": 0.025,
             }
         ]
 
@@ -710,12 +718,15 @@ def test_checkpoint_manager():
         print(f"  ✅ Correlation preview: {preview}")
 
         preview = generate_code_preview(
-            "aggregate_data", {"column": "sales", "operation": "mean", "group_by": "region"}
+            "aggregate_data",
+            {"column": "sales", "operation": "mean", "group_by": "region"},
         )
         assert "groupby" in preview
         print(f"  ✅ Aggregation preview: {preview}")
 
-        preview = generate_code_preview("filter_data", {"column": "age", "operator": ">", "value": 25})
+        preview = generate_code_preview(
+            "filter_data", {"column": "age", "operator": ">", "value": 25}
+        )
         assert ">" in preview
         print(f"  ✅ Filter preview: {preview}")
 
